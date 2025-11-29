@@ -1,11 +1,11 @@
 package tradecalendar
 
 import (
-	"encoding/csv"
-	"go-adata/pkg/adata/stock/cache"
-	"io"
-	"os"
-	"strconv"
+    "encoding/csv"
+    "github.com/doarvid/go-adata/stock/cache"
+    "io"
+    "os"
+    "strconv"
 )
 
 type Day struct {

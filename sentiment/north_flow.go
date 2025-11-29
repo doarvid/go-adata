@@ -6,9 +6,9 @@ import (
     "strings"
     "time"
 
-    httpc "go-adata/pkg/adata/common/http"
-    "go-adata/pkg/adata/stock/cache"
-    "go-adata/pkg/adata/stock/info/tradecalendar"
+    httpc "github.com/doarvid/go-adata/common/http"
+    "github.com/doarvid/go-adata/stock/cache"
+    "github.com/doarvid/go-adata/stock/info/tradecalendar"
 )
 
 type NorthFlowDaily struct {

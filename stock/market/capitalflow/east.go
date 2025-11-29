@@ -1,12 +1,12 @@
 package capitalflow
 
 import (
-	"encoding/json"
-	"strconv"
-	"strings"
-	"time"
+    "encoding/json"
+    "strconv"
+    "strings"
+    "time"
 
-	httpc "go-adata/pkg/adata/common/http"
+    httpc "github.com/doarvid/go-adata/common/http"
 )
 
 type FlowMin struct {

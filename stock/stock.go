@@ -1,13 +1,13 @@
 package stock
 
 import (
-	"time"
+    "time"
 
-	"go-adata/pkg/adata/stock/market/capitalflow"
-	"go-adata/pkg/adata/stock/market/conceptflow"
-	"go-adata/pkg/adata/stock/market/conceptmarket"
-	"go-adata/pkg/adata/stock/market/indexmarket"
-	"go-adata/pkg/adata/stock/market/stockmarket"
+    "github.com/doarvid/go-adata/stock/market/capitalflow"
+    "github.com/doarvid/go-adata/stock/market/conceptflow"
+    "github.com/doarvid/go-adata/stock/market/conceptmarket"
+    "github.com/doarvid/go-adata/stock/market/indexmarket"
+    "github.com/doarvid/go-adata/stock/market/stockmarket"
 )
 
 type Stock struct {

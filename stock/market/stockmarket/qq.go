@@ -1,13 +1,13 @@
 package stockmarket
 
 import (
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
+    "regexp"
+    "strconv"
+    "strings"
+    "time"
 
-	"go-adata/pkg/adata/common/codeutils"
-	httpc "go-adata/pkg/adata/common/http"
+    "github.com/doarvid/go-adata/common/codeutils"
+    httpc "github.com/doarvid/go-adata/common/http"
 )
 
 func ListMarketCurrentQQ(codeList []string, wait time.Duration) ([]CurrentQuote, error) {

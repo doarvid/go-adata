@@ -1,13 +1,13 @@
 package indexmarket
 
 import (
-	"encoding/json"
-	"fmt"
-	"strconv"
-	"strings"
-	"time"
+    "encoding/json"
+    "fmt"
+    "strconv"
+    "strings"
+    "time"
 
-	httpc "go-adata/pkg/adata/common/http"
+    httpc "github.com/doarvid/go-adata/common/http"
 )
 
 type IndexDailyBar struct {

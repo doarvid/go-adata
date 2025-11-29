@@ -8,8 +8,8 @@ import (
     "strings"
     "time"
 
-    httpc "go-adata/pkg/adata/common/http"
-    "go-adata/pkg/adata/stock/cache"
+    httpc "github.com/doarvid/go-adata/common/http"
+    "github.com/doarvid/go-adata/stock/cache"
 )
 
 func mapIndexToTHS(indexCode string) string {

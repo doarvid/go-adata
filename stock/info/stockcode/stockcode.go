@@ -12,9 +12,9 @@ import (
     "strings"
     "time"
 
-    "go-adata/pkg/adata/common/codeutils"
-    httpc "go-adata/pkg/adata/common/http"
-    "go-adata/pkg/adata/stock/cache"
+    "github.com/doarvid/go-adata/common/codeutils"
+    httpc "github.com/doarvid/go-adata/common/http"
+    "github.com/doarvid/go-adata/stock/cache"
 )
 
 type StockCode struct {

@@ -6,7 +6,7 @@ import (
     "strings"
     "time"
 
-    httpc "go-adata/pkg/adata/common/http"
+    httpc "github.com/doarvid/go-adata/common/http"
 )
 
 func GetIndexDailyBaidu(indexCode string, startDate string, kType int, wait time.Duration) ([]IndexDailyBar, error) {

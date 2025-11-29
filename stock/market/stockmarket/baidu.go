@@ -7,7 +7,7 @@ import (
     "strings"
     "time"
 
-    httpc "go-adata/pkg/adata/common/http"
+    httpc "github.com/doarvid/go-adata/common/http"
 )
 
 type DailyBar struct {

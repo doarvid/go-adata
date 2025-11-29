@@ -5,7 +5,7 @@ import (
     "strconv"
     "time"
 
-    httpc "go-adata/pkg/adata/common/http"
+    httpc "github.com/doarvid/go-adata/common/http"
 )
 
 type SecuritiesMarginRow struct {

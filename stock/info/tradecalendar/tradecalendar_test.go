@@ -6,7 +6,7 @@ import (
     "strings"
     "testing"
 
-    "go-adata/pkg/adata/stock/cache"
+    "github.com/doarvid/go-adata/stock/cache"
 )
 
 func TestTradeCalendarStructureAndRange(t *testing.T) {
