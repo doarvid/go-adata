@@ -102,11 +102,11 @@ func GetAListInfo(stockCode string, reportDate string, wait time.Duration) ([]AL
 		reportDate = time.Now().Format("2006-01-02")
 	}
 	urls := []string{
-		"https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPT_BILLBOARD_DAILYDETAILSBUY&columns=ALL&filter=(TRADE_DATE='" + reportDate + "')(SECURITY_CODE=\"" + stockCode + "\")&pageNumber=1&pageSize=50&sortTypes=-1&sortColumns=BUY&source=WEB&client=WEB",
-		"https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPT_BILLBOARD_DAILYDETAILSSELL&columns=ALL&filter=(TRADE_DATE='" + reportDate + "')(SECURITY_CODE=\"" + stockCode + "\")&pageNumber=1&pageSize=50&sortTypes=-1&sortColumns=BUY&source=WEB&client=WEB",
+		"https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPT_BILLBOARD_DAILYDETAILSBUY&columns=ALL&filter=(TRADE_DATE=%27" + reportDate + "%27)(SECURITY_CODE=%22" + stockCode + "%22)&pageNumber=1&pageSize=50&sortTypes=-1&sortColumns=BUY&source=WEB&client=WEB",
+		"https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPT_BILLBOARD_DAILYDETAILSSELL&columns=ALL&filter=(TRADE_DATE=%27" + reportDate + "%27)(SECURITY_CODE=%22" + stockCode + "%22)&pageNumber=1&pageSize=50&sortTypes=-1&sortColumns=BUY&source=WEB&client=WEB",
 	}
 	client := httpc.NewClient()
-	out := make([]AListInfo, 0, 16)
+	out := make([]AListInfo, 0, 0)
 	for _, url := range urls {
 		if wait > 0 {
 			time.Sleep(wait)

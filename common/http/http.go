@@ -20,6 +20,7 @@ func SetProxy(enabled bool, ip string) {
 func NewClient() *resty.Client {
 	client := resty.New()
 	client.SetTimeout(15 * time.Second)
+	client.SetDebug(true)
 	if proxyCfg.Enabled && proxyCfg.IP != "" {
 		client.SetProxy("http://" + proxyCfg.IP)
 	}
