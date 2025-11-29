@@ -41,12 +41,14 @@ type AListInfo struct {
 	Reason          string  `json:"reason"`
 }
 
+// 每日龙虎榜，默认为当天
+// http://guba.eastmoney.com/rank/
 func ListAListDaily(reportDate string, wait time.Duration) ([]AListDaily, error) {
 	if reportDate == "" {
 		reportDate = time.Now().Format("2006-01-02")
 	}
 	client := httpc.NewClient()
-	url := "https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=SECURITY_CODE,TRADE_DATE&sortTypes=1,-1&pageSize=500&pageNumber=1&reportName=RPT_DAILYBILLBOARD_DETAILSNEW&columns=SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,TRADE_DATE,EXPLAIN,CLOSE_PRICE,CHANGE_RATE,BILLBOARD_NET_AMT,BILLBOARD_BUY_AMT,BILLBOARD_SELL_AMT,BILLBOARD_DEAL_AMT,ACCUM_AMOUNT,DEAL_NET_RATIO,DEAL_AMOUNT_RATIO,TURNOVERRATE,FREE_MARKET_CAP,EXPLANATION,D1_CLOSE_ADJCHRATE,D2_CLOSE_ADJCHRATE,D5_CLOSE_ADJCHRATE,D10_CLOSE_ADJCHRATE,SECURITY_TYPE_CODE&source=WEB&client=WEB&filter=(TRADE_DATE='" + reportDate + "')(TRADE_DATE='" + reportDate + "')"
+	url := "https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=SECURITY_CODE,TRADE_DATE&sortTypes=1,-1&pageSize=500&pageNumber=1&reportName=RPT_DAILYBILLBOARD_DETAILSNEW&columns=SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,TRADE_DATE,EXPLAIN,CLOSE_PRICE,CHANGE_RATE,BILLBOARD_NET_AMT,BILLBOARD_BUY_AMT,BILLBOARD_SELL_AMT,BILLBOARD_DEAL_AMT,ACCUM_AMOUNT,DEAL_NET_RATIO,DEAL_AMOUNT_RATIO,TURNOVERRATE,FREE_MARKET_CAP,EXPLANATION,D1_CLOSE_ADJCHRATE,D2_CLOSE_ADJCHRATE,D5_CLOSE_ADJCHRATE,D10_CLOSE_ADJCHRATE,SECURITY_TYPE_CODE&source=WEB&client=WEB&filter=(TRADE_DATE=%27" + reportDate + "%27)(TRADE_DATE=%27" + reportDate + "%27)"
 	if wait > 0 {
 		time.Sleep(wait)
 	}
@@ -68,7 +70,7 @@ func ListAListDaily(reportDate string, wait time.Duration) ([]AListDaily, error)
 			Data []map[string]any `json:"data"`
 		} `json:"result"`
 	}
-	if err := json.Unmarshal([]byte(text[l:len(text)-2]), &res); err != nil {
+	if err := json.Unmarshal([]byte(text), &res); err != nil {
 		return nil, err
 	}
 	data := res.Result.Data
@@ -94,6 +96,8 @@ func ListAListDaily(reportDate string, wait time.Duration) ([]AListDaily, error)
 	return out, nil
 }
 
+// 获取单个龙虎榜的数据，买5和卖5
+// https://datacenter-web.eastmoney.com/api/data/v1/get?callback=jQuery1123015874658470862357_1721014447038&reportName=RPT_BILLBOARD_DAILYDETAILSBUY&columns=ALL&filter=(TRADE_DATE='2024-07-12')(SECURITY_CODE="600297")&pageNumber=1&pageSize=50&sortTypes=-1&sortColumns=BUY&source=WEB&client=WEB&_=1721014447040
 func GetAListInfo(stockCode string, reportDate string, wait time.Duration) ([]AListInfo, error) {
 	if stockCode == "" {
 		return []AListInfo{}, nil
