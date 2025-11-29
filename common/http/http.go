@@ -3,6 +3,7 @@ package http
 import (
 	"time"
 
+	browser "github.com/EDDYCJY/fake-useragent"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -21,6 +22,7 @@ func NewClient() *resty.Client {
 	client := resty.New()
 	client.SetTimeout(15 * time.Second)
 	client.SetDebug(true)
+	client.SetHeader("User-Agent", browser.Random())
 	if proxyCfg.Enabled && proxyCfg.IP != "" {
 		client.SetProxy("http://" + proxyCfg.IP)
 	}
