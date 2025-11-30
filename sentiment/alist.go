@@ -12,33 +12,33 @@ import (
 )
 
 type AListDaily struct {
-	TradeDate     string  `json:"trade_date"`
-	ShortName     string  `json:"short_name"`
-	StockCode     string  `json:"stock_code"`
-	Close         float64 `json:"close"`
-	ChangeCpt     float64 `json:"change_cpt"`
-	TurnoverRatio float64 `json:"turnover_ratio"`
-	ANetAmount    float64 `json:"a_net_amount"`
-	ABuyAmount    float64 `json:"a_buy_amount"`
-	ASellAmount   float64 `json:"a_sell_amount"`
-	AAmount       float64 `json:"a_amount"`
-	Amount        float64 `json:"amount"`
-	NetAmountRate float64 `json:"net_amount_rate"`
-	AAmountRate   float64 `json:"a_amount_rate"`
-	Reason        string  `json:"reason"`
+	TradeDate     string  `json:"trade_date"`      // 交易日期 2024-07-01
+	ShortName     string  `json:"short_name"`      // 股票简称 全新好
+	StockCode     string  `json:"stock_code"`      // 股票代码 000007
+	Close         float64 `json:"close"`           // 收盘价(元) 5.16000
+	ChangeCpt     float64 `json:"change_cpt"`      // 涨跌幅(%) -9.94760
+	TurnoverRatio float64 `json:"turnover_ratio"`  // 换手率(%) 8.37860
+	ANetAmount    float64 `json:"a_net_amount"`    // 龙虎榜净买入额(元) 4939641.98000
+	ABuyAmount    float64 `json:"a_buy_amount"`    // 龙虎榜买入额(元) 23347567.29000
+	ASellAmount   float64 `json:"a_sell_amount"`   // 龙虎榜卖出额(元) 18407925.31000
+	AAmount       float64 `json:"a_amount"`        // 龙虎榜成交额(元) 41755492.60000
+	Amount        float64 `json:"amount"`          // 总成交额(元) 137998593
+	NetAmountRate float64 `json:"net_amount_rate"` // 龙虎榜净买额占总成交额比例(%) 3.57949
+	AAmountRate   float64 `json:"a_amount_rate"`   // 龙虎榜成交额占总成交额比例(%) 30.25791
+	Reason        string  `json:"reason"`          // 上榜原因 日跌幅偏离值达到7%的前5只证券
 }
 
 type AListInfo struct {
-	TradeDate       string  `json:"trade_date"`
-	StockCode       string  `json:"stock_code"`
-	OperateCode     string  `json:"operate_code"`
-	OperateName     string  `json:"operate_name"`
-	ABuyAmount      float64 `json:"a_buy_amount"`
-	ASellAmount     float64 `json:"a_sell_amount"`
-	ANetAmount      float64 `json:"a_net_amount"`
-	ABuyAmountRate  float64 `json:"a_buy_amount_rate"`
-	ASellAmountRate float64 `json:"a_sell_amount_rate"`
-	Reason          string  `json:"reason"`
+	TradeDate       string  `json:"trade_date"`         // 交易日期 2024-07-01
+	StockCode       string  `json:"stock_code"`         // 股票代码 000007
+	OperateCode     string  `json:"operate_code"`       // 营业部代码 10678762
+	OperateName     string  `json:"operate_name"`       // 营业部名称 东方财富证券股份有限公司拉萨金融城南环路证券营业部
+	ABuyAmount      float64 `json:"a_buy_amount"`       // 龙虎榜买入额(元) 23347567.29000
+	ASellAmount     float64 `json:"a_sell_amount"`      // 龙虎榜卖出额(元) 18407925.31000
+	ANetAmount      float64 `json:"a_net_amount"`       // 龙虎榜净买入额(元) 4939641.98000
+	ABuyAmountRate  float64 `json:"a_buy_amount_rate"`  // 龙虎榜买入额占总成交额比例(%) 3.57949
+	ASellAmountRate float64 `json:"a_sell_amount_rate"` // 龙虎榜卖出额占总成交额比例(%) 30.25791
+	Reason          string  `json:"reason"`             // 上榜原因 有价格涨跌幅限制的日收盘价格涨幅偏离值达到7%的前五只证券
 }
 
 // 每日龙虎榜，默认为当天

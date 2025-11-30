@@ -1,36 +1,53 @@
 package sentiment
 
 import (
-    "encoding/json"
-    "io"
-    "strings"
-    "time"
+	"encoding/json"
+	"io"
+	"strings"
+	"time"
 
-    httpc "github.com/doarvid/go-adata/common/http"
-    "github.com/doarvid/go-adata/stock/cache"
-    "github.com/doarvid/go-adata/stock/info/tradecalendar"
+	httpc "github.com/doarvid/go-adata/common/http"
+	"github.com/doarvid/go-adata/stock/cache"
+	"github.com/doarvid/go-adata/stock/info/tradecalendar"
 )
 
 type NorthFlowDaily struct {
-	TradeDate string  `json:"trade_date"`
-	NetHgt    float64 `json:"net_hgt"`
-	BuyHgt    float64 `json:"buy_hgt"`
-	SellHgt   float64 `json:"sell_hgt"`
-	NetSgt    float64 `json:"net_sgt"`
-	BuySgt    float64 `json:"buy_sgt"`
-	SellSgt   float64 `json:"sell_sgt"`
-	NetTgt    float64 `json:"net_tgt"`
-	BuyTgt    float64 `json:"buy_tgt"`
-	SellTgt   float64 `json:"sell_tgt"`
+	// 交易时间，格式如 2023-06-01
+	TradeDate string `json:"trade_date"`
+	// 沪港通净买入金额（元），买入和卖出合计，示例：405050400
+	NetHgt float64 `json:"net_hgt"`
+	// 沪港通买入金额（元）
+	BuyHgt float64 `json:"buy_hgt"`
+	// 沪港通卖出金额（元）
+	SellHgt float64 `json:"sell_hgt"`
+	// 深港通净买入金额（元），买入和卖出合计，示例：151704400
+	NetSgt float64 `json:"net_sgt"`
+	// 深港通买入金额（元）
+	BuySgt float64 `json:"buy_sgt"`
+	// 深港通卖出金额（元）
+	SellSgt float64 `json:"sell_sgt"`
+	// 北向净买入金额（元），沪港通和深港通合计，示例：556754800
+	NetTgt float64 `json:"net_tgt"`
+	// 北向买入金额（元）
+	BuyTgt float64 `json:"buy_tgt"`
+	// 北向卖出金额（元）
+	SellTgt float64 `json:"sell_tgt"`
 }
 
 type NorthFlowMinute struct {
-	TradeTime string  `json:"trade_time"`
-	NetHgt    float64 `json:"net_hgt"`
-	NetSgt    float64 `json:"net_sgt"`
-	NetTgt    float64 `json:"net_tgt"`
+	// 交易时间，格式如 2023-06-01 09:30:00
+	TradeTime string `json:"trade_time"`
+	// 沪港通净买入金额（元），示例：405050400
+	NetHgt float64 `json:"net_hgt"`
+	// 深港通净买入金额（元），示例：151704400
+	NetSgt float64 `json:"net_sgt"`
+	// 北向净买入金额（元），沪港通和深港通合计，示例：556754800
+	NetTgt float64 `json:"net_tgt"`
 }
 
+// 获取北向的历史流入行情
+// startDate 开始日期，格式为"2006-01-02"
+// wait 等待时间，单位为秒
 func NorthFlow(startDate string, wait time.Duration) ([]NorthFlowDaily, error) {
 	return northFlowEast(startDate, wait)
 }
@@ -54,27 +71,29 @@ func northFlowEast(startDate string, wait time.Duration) ([]NorthFlowDaily, erro
 	}
 	for currPage < 18 {
 		base := "https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=TRADE_DATE&sortTypes=-1&pageSize=1000&pageNumber=" + toString(currPage) + "&reportName=RPT_MUTUAL_DEAL_HISTORY&columns=ALL&source=WEB&client=WEB&"
-		sgtURL := base + "filter=(MUTUAL_TYPE=\"001\")"
-		hgtURL := base + "filter=(MUTUAL_TYPE=\"003\")"
-        if wait > 0 { time.Sleep(wait) }
-        resp1, err1 := client.R().Get(sgtURL)
-        if err1 != nil {
-            break
-        }
-        resp2, err2 := client.R().Get(hgtURL)
-        if err2 != nil {
-            break
-        }
-        buf1 := new(strings.Builder)
-        buf2 := new(strings.Builder)
-        if _, err := ioCopy(buf1, strings.NewReader(resp1.String())); err != nil {
-            break
-        }
-        if _, err := ioCopy(buf2, strings.NewReader(resp2.String())); err != nil {
-            break
-        }
-        sgtText := strings.ReplaceAll(buf1.String(), "null", "0")
-        hgtText := strings.ReplaceAll(buf2.String(), "null", "0")
+		sgtURL := base + "filter=(MUTUAL_TYPE=%27001%27)"
+		hgtURL := base + "filter=(MUTUAL_TYPE=%27003%27)"
+		if wait > 0 {
+			time.Sleep(wait)
+		}
+		resp1, err1 := client.R().Get(sgtURL)
+		if err1 != nil {
+			break
+		}
+		resp2, err2 := client.R().Get(hgtURL)
+		if err2 != nil {
+			break
+		}
+		buf1 := new(strings.Builder)
+		buf2 := new(strings.Builder)
+		if _, err := ioCopy(buf1, strings.NewReader(resp1.String())); err != nil {
+			break
+		}
+		if _, err := ioCopy(buf2, strings.NewReader(resp2.String())); err != nil {
+			break
+		}
+		sgtText := strings.ReplaceAll(buf1.String(), "null", "0")
+		hgtText := strings.ReplaceAll(buf2.String(), "null", "0")
 		l1 := strings.Index(sgtText, "{")
 		l2 := strings.Index(hgtText, "{")
 		if l1 < 0 || l2 < 0 {
@@ -90,10 +109,10 @@ func northFlowEast(startDate string, wait time.Duration) ([]NorthFlowDaily, erro
 				Data []map[string]any `json:"data"`
 			} `json:"result"`
 		}
-		if err := json.Unmarshal([]byte(sgtText[l1:len(sgtText)-2]), &sgtRes); err != nil {
+		if err := json.Unmarshal([]byte(sgtText), &sgtRes); err != nil {
 			break
 		}
-		if err := json.Unmarshal([]byte(hgtText[l2:len(hgtText)-2]), &hgtRes); err != nil {
+		if err := json.Unmarshal([]byte(hgtText), &hgtRes); err != nil {
 			break
 		}
 		sgtData := sgtRes.Result.Data
@@ -151,19 +170,21 @@ func NorthFlowCurrent(wait time.Duration) (NorthFlowMinute, error) {
 
 func northFlowMinThs(wait time.Duration) ([]NorthFlowMinute, error) {
 	client := httpc.NewClient()
-    if wait > 0 { time.Sleep(wait) }
-    resp, err := client.R().Get("https://data.hexin.cn/market/hsgtApi/method/dayChart/")
-    if err != nil {
-        return []NorthFlowMinute{}, nil
-    }
-    var res struct {
-        Time []string  `json:"time"`
-        Hgt  []float64 `json:"hgt"`
-        Sgt  []float64 `json:"sgt"`
-    }
-    if err := json.Unmarshal(resp.Body(), &res); err != nil {
-        return []NorthFlowMinute{}, nil
-    }
+	if wait > 0 {
+		time.Sleep(wait)
+	}
+	resp, err := client.R().Get("https://data.hexin.cn/market/hsgtApi/method/dayChart/")
+	if err != nil {
+		return []NorthFlowMinute{}, nil
+	}
+	var res struct {
+		Time []string  `json:"time"`
+		Hgt  []float64 `json:"hgt"`
+		Sgt  []float64 `json:"sgt"`
+	}
+	if err := json.Unmarshal(resp.Body(), &res); err != nil {
+		return []NorthFlowMinute{}, nil
+	}
 	now := time.Now()
 	yrs := cache.CalendarYears()
 	var days []tradecalendar.Day
@@ -194,16 +215,18 @@ func northFlowMinThs(wait time.Duration) ([]NorthFlowMinute, error) {
 
 func northFlowMinEast(wait time.Duration) ([]NorthFlowMinute, error) {
 	client := httpc.NewClient()
-    url := "https://push2.eastmoney.com/api/qt/kamt.rtmin/get?fields1=f1,f3&fields2=f51,f52,f54,f56&ut=b2884a393a59ad64002292a3e90d46a5"
-    if wait > 0 { time.Sleep(wait) }
-    resp, err := client.R().Get(url)
-    if err != nil {
-        return []NorthFlowMinute{}, nil
-    }
-    buf := new(strings.Builder)
-    if _, err := io.Copy(buf, strings.NewReader(resp.String())); err != nil {
-        return []NorthFlowMinute{}, nil
-    }
+	url := "https://push2.eastmoney.com/api/qt/kamt.rtmin/get?fields1=f1,f3&fields2=f51,f52,f54,f56&ut=b2884a393a59ad64002292a3e90d46a5"
+	if wait > 0 {
+		time.Sleep(wait)
+	}
+	resp, err := client.R().Get(url)
+	if err != nil {
+		return []NorthFlowMinute{}, nil
+	}
+	buf := new(strings.Builder)
+	if _, err := io.Copy(buf, strings.NewReader(resp.String())); err != nil {
+		return []NorthFlowMinute{}, nil
+	}
 	text := buf.String()
 	l := strings.Index(text, "{")
 	if l < 0 {

@@ -1,13 +1,13 @@
 package sentiment
 
 import (
-    "encoding/json"
-    "fmt"
-    "strconv"
-    "strings"
-    "time"
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
-    httpc "github.com/doarvid/go-adata/common/http"
+	httpc "github.com/doarvid/go-adata/common/http"
 )
 
 type MineRow struct {
@@ -22,7 +22,7 @@ type MineRow struct {
 
 func MineClearanceTDX(stockCode string, wait time.Duration) ([]MineRow, error) {
 	if stockCode == "" {
-		stockCode = "600811"
+		return nil, fmt.Errorf("stock code is empty")
 	}
 	client := httpc.NewClient()
 	url := "http://page3.tdx.com.cn:7615/site/pcwebcall_static/bxb/json/" + stockCode + ".json"
