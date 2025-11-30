@@ -25,8 +25,26 @@ type StockLiftingRow struct {
 // 获取最近一个月的股票解禁数据
 // 帮助提前规避解禁股票，对于大额解禁个股参考意义巨大。
 func StockLiftingLastMonth(wait time.Duration) ([]StockLiftingRow, error) {
+	out := []StockLiftingRow{}
+	for i := 1; i < 10; i++ {
+		rows, err := stockLiftingLastMonthByPage(i, wait)
+		if err != nil {
+			return []StockLiftingRow{}, err
+		}
+		out = append(out, rows...)
+		if len(rows) != 50 {
+			break
+		}
+	}
+	return out, nil
+}
+
+func stockLiftingLastMonthByPage(pageNum int, wait time.Duration) ([]StockLiftingRow, error) {
 	client := httpc.NewClient()
 	url := "http://data.10jqka.com.cn/market/xsjj/field/enddate/order/desc/ajax/1/free/1/"
+	if pageNum > 1 {
+		url = url + "page/" + strconv.Itoa(pageNum) + "/free/1/"
+	}
 	if wait > 0 {
 		time.Sleep(wait)
 	}
@@ -37,7 +55,13 @@ func StockLiftingLastMonth(wait time.Duration) ([]StockLiftingRow, error) {
 	if err != nil {
 		return []StockLiftingRow{}, nil
 	}
-	text := resp.String()
+	// 将 GB2312 编码的响应体手动解码为 UTF-8
+	gbkBytes := resp.Body()
+	utf8Bytes, err := utils.GBKToUTF8(gbkBytes)
+	if err != nil {
+		return []StockLiftingRow{}, err
+	}
+	text := string(utf8Bytes)
 	if !(strings.Contains(text, "解禁日期") || strings.Contains(text, "解禁股")) {
 		return []StockLiftingRow{}, nil
 	}
@@ -65,20 +89,26 @@ func StockLiftingLastMonth(wait time.Duration) ([]StockLiftingRow, error) {
 func parseTableRows(html string) [][]string {
 	trs := strings.Split(html, "<tr")
 	out := [][]string{}
-	for i, seg := range trs {
-		if i == 0 {
-			continue
-		}
+	for _, seg := range trs {
 		cols := []string{}
-		re := regexp.MustCompile(`>([^<]+)</td>`)
+		re := regexp.MustCompile(`>([\s\S]+?)</td>`)
 		for _, m := range re.FindAllStringSubmatch(seg, -1) {
 			cols = append(cols, strings.TrimSpace(m[1]))
 		}
 		if len(cols) >= 8 {
-			out = append(out, []string{cols[1], cols[2], cols[3], cols[4], cols[5], cols[6], cols[7], cols[8]})
+			out = append(out, []string{toHrefText(cols[1]), toHrefText(cols[2]), cols[3], cols[4], cols[5], cols[6], cols[7], cols[8]})
 		}
 	}
 	return out
+}
+
+func toHrefText(v string) string {
+	re := regexp.MustCompile(`>([\s\S]+?)</a>`)
+	ms := re.FindStringSubmatch(v)
+	if len(ms) >= 2 {
+		return ms[1]
+	}
+	return ""
 }
 
 func toUnitInt(s string) int64 {

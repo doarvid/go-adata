@@ -13,4 +13,5 @@ func TestStockLiftingLastMonth(t *testing.T) {
 	for _, row := range rows {
 		t.Logf("%+v\n", row)
 	}
+	t.Logf("total %d rows", len(rows))
 }
