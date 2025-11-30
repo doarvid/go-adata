@@ -64,6 +64,31 @@ type TickBar struct {
 	StockCode string  `json:"stock_code"` // 代码	例如：600001
 }
 
+type Five struct {
+	StockCode string  `json:"stock_code"` // 代码，如：600001
+	ShortName string  `json:"short_name"` // 简称，如：平安银行
+	S5        float64 `json:"s5"`         // 卖5价(元)，如：11.29
+	Sv5       int64   `json:"sv5"`        // 卖5量(股)，如：2263
+	S4        float64 `json:"s4"`         // 卖4价(元)，如：11.28
+	Sv4       int64   `json:"sv4"`        // 卖4量(股)，如：2263
+	S3        float64 `json:"s3"`         // 卖3价(元)，如：11.27
+	Sv3       int64   `json:"sv3"`        // 卖3量(股)，如：2263
+	S2        float64 `json:"s2"`         // 卖2价(元)，如：11.26
+	Sv2       int64   `json:"sv2"`        // 卖2量(股)，如：2263
+	S1        float64 `json:"s1"`         // 卖1价(元)，如：11.25
+	Sv1       int64   `json:"sv1"`        // 卖1量(股)，如：2263
+	B1        float64 `json:"b1"`         // 买1价(元)，如：11.24
+	Bv1       int64   `json:"bv1"`        // 买1量(股)，如：2263
+	B2        float64 `json:"b2"`         // 买2价(元)，如：11.23
+	Bv2       int64   `json:"bv2"`        // 买2量(股)，如：2263
+	B3        float64 `json:"b3"`         // 买3价(元)，如：11.22
+	Bv3       int64   `json:"bv3"`        // 买3量(股)，如：2263
+	B4        float64 `json:"b4"`         // 买4价(元)，如：11.21
+	Bv4       int64   `json:"bv4"`        // 买4量(股)，如：2263
+	B5        float64 `json:"b5"`         // 买5价(元)，如：11.20
+	Bv5       int64   `json:"bv5"`        // 买5量(股)，如：2263
+}
+
 func NewMarket() *Market { return &Market{MinWait: 50 * time.Millisecond, Retries: 2} }
 
 func (m *Market) GetDaily(stockCode, startDate, endDate string, kType, adjustType int, wait time.Duration) ([]DailyBar, error) {
