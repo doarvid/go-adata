@@ -7,7 +7,6 @@ import (
 	"time"
 
 	httpc "github.com/doarvid/go-adata/common/http"
-	"github.com/doarvid/go-adata/stock/cache"
 	"github.com/doarvid/go-adata/stock/info/tradecalendar"
 )
 
@@ -186,7 +185,7 @@ func northFlowMinThs(wait time.Duration) ([]NorthFlowMinute, error) {
 		return []NorthFlowMinute{}, nil
 	}
 	now := time.Now()
-	yrs := cache.CalendarYears()
+	yrs := tradecalendar.CalendarYears()
 	var days []tradecalendar.Day
 	for _, y := range yrs {
 		if y == now.Year() {
