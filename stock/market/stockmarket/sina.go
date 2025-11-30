@@ -1,11 +1,12 @@
 package stockmarket
 
 import (
-    "strings"
-    "time"
+	"strings"
+	"time"
 
-    "github.com/doarvid/go-adata/common/codeutils"
-    httpc "github.com/doarvid/go-adata/common/http"
+	"github.com/doarvid/go-adata/common/codeutils"
+	httpc "github.com/doarvid/go-adata/common/http"
+	"github.com/doarvid/go-adata/common/utils"
 )
 
 type CurrentQuote struct {
@@ -28,18 +29,21 @@ func ListMarketCurrentSina(codeList []string, wait time.Duration) ([]CurrentQuot
 		ex := strings.ToLower(codeutils.GetExchangeByStockCode(code))
 		api += "s_" + ex + code + ","
 	}
-    if wait > 0 {
-        time.Sleep(wait)
-    }
-    headers := map[string]string{"Referer": "https://finance.sina.com.cn/", "User-Agent": "Mozilla/5.0"}
-    resp, err := client.R().SetHeaders(headers).Get(api)
-    if err != nil {
-        return nil, err
-    }
-    text := resp.String()
-    if len(text) < 1 || resp.StatusCode() != 200 {
-        return []CurrentQuote{}, nil
-    }
+	if wait > 0 {
+		time.Sleep(wait)
+	}
+	headers := map[string]string{"Referer": "https://finance.sina.com.cn/", "User-Agent": "Mozilla/5.0"}
+	resp, err := client.R().SetHeaders(headers).Get(api)
+	if err != nil {
+		return nil, err
+	}
+	text, err := utils.GBKToUTF8([]byte(resp.String()))
+	if err != nil {
+		return nil, err
+	}
+	if len(text) < 1 || resp.StatusCode() != 200 {
+		return []CurrentQuote{}, nil
+	}
 	parts := strings.Split(text, ";")
 	out := make([]CurrentQuote, 0, len(parts))
 	for _, p := range parts {
