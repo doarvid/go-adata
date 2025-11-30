@@ -36,6 +36,34 @@ type DailyBar struct {
 	PreClose float64 `json:"pre_close"`
 }
 
+// 分时 K 线结构体
+type MinuteBar struct {
+	Time      int64   `json:"time"`       // 时间戳（秒）  例如：1710000000
+	Price     float64 `json:"price"`      // 价格(元)     例如：9.98
+	ChangePct float64 `json:"change_pct"` // 涨跌幅(%)    例如：-0.16
+	Change    float64 `json:"change"`     // 涨跌额(元)   例如：-0.02
+	AvgPrice  float64 `json:"avg_price"`  // 平均价(元)   例如：9.98
+	Volume    int64   `json:"volume"`     // 成交量(股)   例如：64745722
+	Amount    float64 `json:"amount"`     // 成交额(元)   例如：934285179.00
+	Open      float64 `json:"open"`       // 开盘价(元)   例如：10.00
+	Close     float64 `json:"close"`      // 收盘价(元)   例如：9.98
+	High      float64 `json:"high"`       // 最高价(元)   例如：10.05
+	Low       float64 `json:"low"`        // 最低价(元)   例如：9.95
+	TradeTime string  `json:"trade_time"` // 交易时间     例如：2024-01-01 14:55:00
+	TradeDate string  `json:"trade_date"` // 交易日期     例如：2024-01-01
+	StockCode string  `json:"stock_code"` // 股票代码     例如：600001
+}
+
+// 逐笔成交结构体
+type TickBar struct {
+	TradeTime string  `json:"trade_time"` // 成交时间	例如：2023-09-13 09:31:45
+	Volume    int64   `json:"volume"`     // 成交量(股)	例如：34452500
+	Price     float64 `json:"price"`      // 当前价格(元)	例如：12.36
+	Type      string  `json:"type"`       // 类型	例如：--
+	BsType    string  `json:"bs_type"`    // 买卖类型	B：买入，S：卖出
+	StockCode string  `json:"stock_code"` // 代码	例如：600001
+}
+
 func NewMarket() *Market { return &Market{MinWait: 50 * time.Millisecond, Retries: 2} }
 
 func (m *Market) GetDaily(stockCode, startDate, endDate string, kType, adjustType int, wait time.Duration) ([]DailyBar, error) {
