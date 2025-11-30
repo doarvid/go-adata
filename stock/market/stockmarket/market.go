@@ -7,6 +7,35 @@ type Market struct {
 	Retries int
 }
 
+type DailyBar struct {
+	// 股票代码，示例：600001
+	StockCode string `json:"stock_code"`
+	// 交易时间，示例：1990-01-01 00:00:00；分时图使用具体的时间
+	TradeTime string `json:"trade_time"`
+	// 交易日期，示例：1990-01-01
+	TradeDate string `json:"trade_date"`
+	// 开盘价(元)，示例：9.98
+	Open float64 `json:"open"`
+	// 收盘价(元)，示例：9.98
+	Close float64 `json:"close"`
+	// 最高价(元)，示例：9.98
+	High float64 `json:"high"`
+	// 最低价(元)，示例：9.98
+	Low float64 `json:"low"`
+	// 成交量(股)，示例：64745722
+	Volume float64 `json:"volume"`
+	// 成交额(元)，示例：934285179.00
+	Amount float64 `json:"amount"`
+	// 涨跌额(元)，示例：-0.02
+	Change float64 `json:"change"`
+	// 涨跌幅(%)，示例：-0.16
+	ChangePct float64 `json:"change_pct"`
+	// 换手率(%)，示例：0.38
+	TurnoverRatio string `json:"turnover_ratio"`
+	// 昨收(元)，示例：10.00
+	PreClose float64 `json:"pre_close"`
+}
+
 func NewMarket() *Market { return &Market{MinWait: 50 * time.Millisecond, Retries: 2} }
 
 func (m *Market) GetDaily(stockCode, startDate, endDate string, kType, adjustType int, wait time.Duration) ([]DailyBar, error) {
