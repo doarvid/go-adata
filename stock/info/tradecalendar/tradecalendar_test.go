@@ -1,26 +1,24 @@
 package tradecalendar
 
 import (
-    "os"
-    "strconv"
-    "strings"
-    "testing"
-
-    "github.com/doarvid/go-adata/stock/cache"
+	"strconv"
+	"strings"
+	"testing"
 )
 
 func TestTradeCalendarStructureAndRange(t *testing.T) {
 	for year := 2000; year <= 2025; year++ {
-        t.Run(strconv.Itoa(year), func(t *testing.T) {
-            p := cache.GetCalendarCSVPath(year)
-            if _, err := os.Stat(p); err != nil { t.Skipf("no calendar csv for %d", year); return }
-            days, err := TradeCalendar(year)
-            if err != nil {
-                t.Fatalf("err: %v", err)
-            }
-            if len(days) == 0 { t.Skipf("no data for %d", year); return }
-            for i, d := range days {
-                if d.TradeDate == "" {
+		t.Run(strconv.Itoa(year), func(t *testing.T) {
+			days, err := TradeCalendar(year)
+			if err != nil {
+				t.Fatalf("err: %v", err)
+			}
+			if len(days) == 0 {
+				t.Skipf("no data for %d", year)
+				return
+			}
+			for i, d := range days {
+				if d.TradeDate == "" {
 					t.Fatalf("empty trade_date at %d", i)
 				}
 				parts := strings.Split(d.TradeDate, "-")

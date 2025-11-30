@@ -1,12 +1,16 @@
 package tradecalendar
 
 import (
-    "encoding/csv"
-    "github.com/doarvid/go-adata/stock/cache"
-    "io"
-    "os"
-    "strconv"
+	"embed"
+	"encoding/csv"
+	"fmt"
+	"io"
+	"log"
+	"strconv"
 )
+
+//go:embed calendar/*
+var staticFiles embed.FS
 
 type Day struct {
 	TradeDate   string `json:"trade_date"`
@@ -15,13 +19,12 @@ type Day struct {
 }
 
 func TradeCalendar(year int) ([]Day, error) {
-	p := cache.GetCalendarCSVPath(year)
-	f, err := os.Open(p)
+	file, err := staticFiles.Open(fmt.Sprintf("calendar/%d.csv", year))
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
-	defer f.Close()
-	r := csv.NewReader(f)
+	defer file.Close()
+	r := csv.NewReader(file)
 	// skip header
 	if _, err := r.Read(); err != nil {
 		return nil, err
@@ -40,4 +43,8 @@ func TradeCalendar(year int) ([]Day, error) {
 		out = append(out, Day{TradeDate: rec[0], TradeStatus: status, DayWeek: week})
 	}
 	return out, nil
+}
+
+func CalendarYears() []int {
+	return []int{2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025}
 }

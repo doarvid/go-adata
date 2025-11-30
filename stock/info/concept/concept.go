@@ -1,19 +1,21 @@
 package concept
 
 import (
-    "encoding/csv"
-    "encoding/json"
-    "fmt"
-    "io"
-    "os"
-    "strconv"
-    "strings"
-    "time"
+	_ "embed"
+	"encoding/csv"
+	"encoding/json"
+	"fmt"
+	"io"
+	"strconv"
+	"strings"
+	"time"
 
-    "github.com/doarvid/go-adata/common/codeutils"
-    httpc "github.com/doarvid/go-adata/common/http"
-    "github.com/doarvid/go-adata/stock/cache"
+	"github.com/doarvid/go-adata/common/codeutils"
+	httpc "github.com/doarvid/go-adata/common/http"
 )
+
+//go:embed all_concept_code_east.csv
+var allConceptCodeCSVEast string
 
 type ConceptCode struct {
 	ConceptCode string `json:"concept_code"`
@@ -36,13 +38,7 @@ type Constituent struct {
 }
 
 func LoadAllConceptCodesFromCSV() ([]ConceptCode, error) {
-	p := cache.GetAllConceptCodeEastCSVPath()
-	f, err := os.Open(p)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	r := csv.NewReader(f)
+	r := csv.NewReader(strings.NewReader(allConceptCodeCSVEast))
 	if _, err := r.Read(); err != nil {
 		return nil, err
 	}
@@ -65,31 +61,31 @@ func AllConceptCodesEast(wait time.Duration) ([]ConceptCode, error) {
 	page := 1
 	size := 100
 	var out []ConceptCode
-    for page < 50 {
-        params := map[string]string{
-            "pn":     strconv.Itoa(page),
-            "pz":     strconv.Itoa(size),
-            "po":     "1",
-            "np":     "1",
-            "fields": "f12,f13,f14,f62",
-            "fid":    "f62",
-            "fs":     "m:90+t:3",
-        }
-        if wait > 0 {
-            time.Sleep(wait)
-        }
-        resp, err := client.R().SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/clist/get")
-        if err != nil {
-            return out, err
-        }
-        var data struct {
-            Data struct {
-                Diff []map[string]any `json:"diff"`
-            } `json:"data"`
-        }
-        if err := json.Unmarshal(resp.Body(), &data); err != nil {
-            return out, err
-        }
+	for page < 50 {
+		params := map[string]string{
+			"pn":     strconv.Itoa(page),
+			"pz":     strconv.Itoa(size),
+			"po":     "1",
+			"np":     "1",
+			"fields": "f12,f13,f14,f62",
+			"fid":    "f62",
+			"fs":     "m:90+t:3",
+		}
+		if wait > 0 {
+			time.Sleep(wait)
+		}
+		resp, err := client.R().SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/clist/get")
+		if err != nil {
+			return out, err
+		}
+		var data struct {
+			Data struct {
+				Diff []map[string]any `json:"diff"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal(resp.Body(), &data); err != nil {
+			return out, err
+		}
 		if len(data.Data.Diff) == 0 {
 			break
 		}
@@ -120,33 +116,33 @@ func AllConceptCodesEast(wait time.Duration) ([]ConceptCode, error) {
 func GetConceptEast(stockCode string, wait time.Duration) ([]ConceptInfo, error) {
 	client := httpc.NewClient()
 	sc := codeutils.CompileExchangeByStockCode(stockCode)
-    params := map[string]string{
-        "reportName":  "RPT_F10_CORETHEME_BOARDTYPE",
-        "columns":     "SECUCODE,SECURITY_CODE,SECURITY_NAME_ABBR,NEW_BOARD_CODE,BOARD_NAME,SELECTED_BOARD_REASON,IS_PRECISE,BOARD_RANK,BOARD_YIELD,DERIVE_BOARD_CODE",
-        "quoteColumns": "f3~05~NEW_BOARD_CODE~BOARD_YIELD",
-        "filter":      "(SECUCODE=\"" + sc + "\")(IS_PRECISE=\"1\")",
-        "pageNumber":  "1",
-        "pageSize":    "50",
-        "sortTypes":   "1",
-        "sortColumns": "BOARD_RANK",
-        "source":      "HSF10",
-        "client":      "PC",
-    }
-    if wait > 0 {
-        time.Sleep(wait)
-    }
-    resp, err := client.R().SetQueryParams(params).Get("https://datacenter.eastmoney.com/securities/api/data/v1/get")
-    if err != nil {
-        return nil, err
-    }
-    var data struct {
-        Result struct {
-            Data []map[string]any `json:"data"`
-        } `json:"result"`
-    }
-    if err := json.Unmarshal(resp.Body(), &data); err != nil {
-        return nil, err
-    }
+	params := map[string]string{
+		"reportName":   "RPT_F10_CORETHEME_BOARDTYPE",
+		"columns":      "SECUCODE,SECURITY_CODE,SECURITY_NAME_ABBR,NEW_BOARD_CODE,BOARD_NAME,SELECTED_BOARD_REASON,IS_PRECISE,BOARD_RANK,BOARD_YIELD,DERIVE_BOARD_CODE",
+		"quoteColumns": "f3~05~NEW_BOARD_CODE~BOARD_YIELD",
+		"filter":       "(SECUCODE=\"" + sc + "\")(IS_PRECISE=\"1\")",
+		"pageNumber":   "1",
+		"pageSize":     "50",
+		"sortTypes":    "1",
+		"sortColumns":  "BOARD_RANK",
+		"source":       "HSF10",
+		"client":       "PC",
+	}
+	if wait > 0 {
+		time.Sleep(wait)
+	}
+	resp, err := client.R().SetQueryParams(params).Get("https://datacenter.eastmoney.com/securities/api/data/v1/get")
+	if err != nil {
+		return nil, err
+	}
+	var data struct {
+		Result struct {
+			Data []map[string]any `json:"data"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(resp.Body(), &data); err != nil {
+		return nil, err
+	}
 	var out []ConceptInfo
 	for _, d := range data.Result.Data {
 		out = append(out, ConceptInfo{
@@ -164,33 +160,33 @@ func ConceptConstituentEast(conceptCode string, wait time.Duration) ([]Constitue
 	client := httpc.NewClient()
 	var out []Constituent
 	page := 1
-    for page < 100 {
-        params := map[string]string{
-            "fid":    "f62",
-            "po":     "1",
-            "pz":     "200",
-            "pn":     strconv.Itoa(page),
-            "np":     "1",
-            "fltt":   "2",
-            "invt":   "2",
-            "fs":     "b:" + conceptCode,
-            "fields": "f12,f14",
-        }
-        if wait > 0 {
-            time.Sleep(wait)
-        }
-        resp, err := client.R().SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/clist/get")
-        if err != nil {
-            return out, err
-        }
-        var data struct {
-            Data struct {
-                Diff []map[string]any `json:"diff"`
-            } `json:"data"`
-        }
-        if err := json.Unmarshal(resp.Body(), &data); err != nil {
-            return out, err
-        }
+	for page < 100 {
+		params := map[string]string{
+			"fid":    "f62",
+			"po":     "1",
+			"pz":     "200",
+			"pn":     strconv.Itoa(page),
+			"np":     "1",
+			"fltt":   "2",
+			"invt":   "2",
+			"fs":     "b:" + conceptCode,
+			"fields": "f12,f14",
+		}
+		if wait > 0 {
+			time.Sleep(wait)
+		}
+		resp, err := client.R().SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/clist/get")
+		if err != nil {
+			return out, err
+		}
+		var data struct {
+			Data struct {
+				Diff []map[string]any `json:"diff"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal(resp.Body(), &data); err != nil {
+			return out, err
+		}
 		if len(data.Data.Diff) == 0 {
 			break
 		}
