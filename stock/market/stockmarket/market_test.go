@@ -105,3 +105,16 @@ func TestGetMarketCurrentQQ(t *testing.T) {
 	}
 	t.Logf("total %d current", len(currents))
 }
+
+func TestGetMarketFive(t *testing.T) {
+	stockCode := "002926"
+	wait := 100 * time.Millisecond
+	five, err := GetMarketFiveBaidu(stockCode, wait)
+	if err != nil {
+		t.Errorf("GetMarketFiveBaidu failed: %v", err)
+	}
+	if len(five.ShortName) == 0 {
+		t.Errorf("GetMarketFiveBaidu failed: empty five")
+	}
+	t.Logf("total %+v five", five)
+}
