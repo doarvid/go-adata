@@ -9,7 +9,7 @@ import (
 	httpc "github.com/doarvid/go-adata/common/http"
 )
 
-func GetMarketDailyEast(stockCode string, startDate string, endDate string, kType KType, adjustType int, wait time.Duration) ([]DailyBar, error) {
+func GetMarketDailyEast(stockCode string, startDate string, endDate string, kType KType, adjustType AdjustType, wait time.Duration) ([]DailyBar, error) {
 	client := httpc.NewClient()
 	seCid := "0"
 	if strings.HasPrefix(stockCode, "6") {
@@ -32,7 +32,7 @@ func GetMarketDailyEast(stockCode string, startDate string, endDate string, kTyp
 		"fields2": "f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61,f116",
 		"ut":      "7eea3edcaed734bea9cbfc24409ed989",
 		"klt":     strconv.Itoa(klt),
-		"fqt":     strconv.Itoa(adjustType),
+		"fqt":     strconv.Itoa(int(adjustType)),
 		"secid":   seCid + "." + stockCode,
 		"beg":     beg,
 		"end":     end,

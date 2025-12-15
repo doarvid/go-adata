@@ -12,7 +12,7 @@ func TestGetMarketDaily(t *testing.T) {
 	startDate := "2025-11-13"
 	wait := 100 * time.Millisecond
 	m := NewMarket()
-	dailyBars, err := m.GetDaily(stockCode, startDate, tradecalendar.TradeDateNow(), KTypeDay, 0, wait)
+	dailyBars, err := m.GetDaily(stockCode, startDate, tradecalendar.TradeDateNow(), KTypeDay, AdjustTypePre, wait)
 	if err != nil {
 		t.Errorf("GetMarketDaily failed: %v", err)
 	}

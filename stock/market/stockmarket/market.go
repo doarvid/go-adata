@@ -15,6 +15,14 @@ const (
 	KTypeMinite60 KType = 60
 )
 
+type AdjustType int
+
+const (
+	AdjustTypeNone AdjustType = 0
+	AdjustTypePre  AdjustType = 1
+	AdjustTypePost AdjustType = 2
+)
+
 type Market struct {
 	MinWait time.Duration
 	Retries int
@@ -104,7 +112,7 @@ type Five struct {
 
 func NewMarket() *Market { return &Market{MinWait: 50 * time.Millisecond, Retries: 2} }
 
-func (m *Market) GetDaily(stockCode, startDate, endDate string, kType KType, adjustType int, wait time.Duration) ([]DailyBar, error) {
+func (m *Market) GetDaily(stockCode, startDate, endDate string, kType KType, adjustType AdjustType, wait time.Duration) ([]DailyBar, error) {
 	if stockCode == "" {
 		return []DailyBar{}, nil
 	}
@@ -234,18 +242,4 @@ func (m *Market) ListCurrent(codeList []string, wait time.Duration) ([]CurrentQu
 		return NormalizeCurrent(sina), err2
 	}
 	return NormalizeCurrent(qq), err
-}
-
-// Python 风格方法名包装
-func (m *Market) GetMarket(stockCode, startDate, endDate string, kType KType, adjustType int, wait time.Duration) ([]DailyBar, error) {
-	return m.GetDaily(stockCode, startDate, endDate, kType, adjustType, wait)
-}
-func (m *Market) GetMarketMin(stockCode string, wait time.Duration) ([]MinuteBar, error) {
-	return m.GetMinute(stockCode, wait)
-}
-func (m *Market) GetMarketFive(stockCode string, wait time.Duration) (Five, error) {
-	return m.GetFive(stockCode, wait)
-}
-func (m *Market) GetMarketBar(stockCode string, wait time.Duration) ([]TickBar, error) {
-	return m.GetBar(stockCode, wait)
 }

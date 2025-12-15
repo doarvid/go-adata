@@ -1,13 +1,13 @@
 package stock
 
 import (
-    "time"
+	"time"
 
-    "github.com/doarvid/go-adata/stock/market/capitalflow"
-    "github.com/doarvid/go-adata/stock/market/conceptflow"
-    "github.com/doarvid/go-adata/stock/market/conceptmarket"
-    "github.com/doarvid/go-adata/stock/market/indexmarket"
-    "github.com/doarvid/go-adata/stock/market/stockmarket"
+	"github.com/doarvid/go-adata/stock/market/capitalflow"
+	"github.com/doarvid/go-adata/stock/market/conceptflow"
+	"github.com/doarvid/go-adata/stock/market/conceptmarket"
+	"github.com/doarvid/go-adata/stock/market/indexmarket"
+	"github.com/doarvid/go-adata/stock/market/stockmarket"
 )
 
 type Stock struct {
@@ -17,7 +17,7 @@ type Stock struct {
 func New() *Stock { return &Stock{Market: stockmarket.NewMarket()} }
 
 func (s *Stock) Daily(stockCode, startDate, endDate string, kType, adjustType int, wait time.Duration) ([]stockmarket.DailyBar, error) {
-	return s.Market.GetDaily(stockCode, startDate, endDate, kType, adjustType, wait)
+	return s.Market.GetDaily(stockCode, startDate, endDate, stockmarket.KType(kType), stockmarket.AdjustType(adjustType), wait)
 }
 
 func (s *Stock) Minute(stockCode string, wait time.Duration) ([]stockmarket.MinuteBar, error) {
@@ -34,20 +34,6 @@ func (s *Stock) Five(stockCode string, wait time.Duration) (stockmarket.Five, er
 
 func (s *Stock) Current(codeList []string, wait time.Duration) ([]stockmarket.CurrentQuote, error) {
 	return s.Market.ListCurrent(codeList, wait)
-}
-
-// Python 风格方法名包装
-func (s *Stock) GetMarket(stockCode, startDate, endDate string, kType, adjustType int, wait time.Duration) ([]stockmarket.DailyBar, error) {
-	return s.Market.GetMarket(stockCode, startDate, endDate, kType, adjustType, wait)
-}
-func (s *Stock) GetMarketMin(stockCode string, wait time.Duration) ([]stockmarket.MinuteBar, error) {
-	return s.Market.GetMarketMin(stockCode, wait)
-}
-func (s *Stock) GetMarketFive(stockCode string, wait time.Duration) (stockmarket.Five, error) {
-	return s.Market.GetMarketFive(stockCode, wait)
-}
-func (s *Stock) GetMarketBar(stockCode string, wait time.Duration) ([]stockmarket.TickBar, error) {
-	return s.Market.GetMarketBar(stockCode, wait)
 }
 
 func (s *Stock) IndexDaily(indexCode, startDate string, kType int, wait time.Duration) ([]indexmarket.IndexDailyBar, error) {
