@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"strconv"
+	"time"
 )
 
 //go:embed calendar/*
@@ -43,6 +44,36 @@ func TradeCalendar(year int) ([]Day, error) {
 		out = append(out, Day{TradeDate: rec[0], TradeStatus: status, DayWeek: week})
 	}
 	return out, nil
+}
+
+func TradeDate(t time.Time) string {
+	return t.Format("2006-01-02")
+}
+func TradeDateNow() string {
+	return TradeDate(time.Now())
+}
+func LatestTradeDate() ([]Day, error) {
+	years := CalendarYears()
+	tradeDates, err := TradeCalendar(years[len(years)-1])
+	if err != nil {
+		return nil, err
+	}
+	tradeDates2, err := TradeCalendar(years[len(years)-2])
+	if err != nil {
+		return nil, err
+	}
+	tradeDates = append(tradeDates, tradeDates2...)
+	tradeDate := TradeDate(time.Now())
+	var ret []Day
+	for i := len(tradeDates) - 1; i > 0; i-- {
+		if tradeDates[i].TradeDate == tradeDate {
+			for j := i; j > 0 && len(ret) < 360; j-- {
+				ret = append(ret, tradeDates[j])
+			}
+			break
+		}
+	}
+	return ret, nil
 }
 
 func CalendarYears() []int {

@@ -2,6 +2,19 @@ package stockmarket
 
 import "time"
 
+type KType int
+
+const (
+	KTypeDay      KType = 1
+	KTypeMinute   KType = 2
+	KTypeMonth    KType = 3
+	KTypeQuarter  KType = 4
+	KTypeMinite5  KType = 5
+	KTypeMinite15 KType = 15
+	KTypeMinite30 KType = 30
+	KTypeMinite60 KType = 60
+)
+
 type Market struct {
 	MinWait time.Duration
 	Retries int
@@ -91,7 +104,7 @@ type Five struct {
 
 func NewMarket() *Market { return &Market{MinWait: 50 * time.Millisecond, Retries: 2} }
 
-func (m *Market) GetDaily(stockCode, startDate, endDate string, kType, adjustType int, wait time.Duration) ([]DailyBar, error) {
+func (m *Market) GetDaily(stockCode, startDate, endDate string, kType KType, adjustType int, wait time.Duration) ([]DailyBar, error) {
 	if stockCode == "" {
 		return []DailyBar{}, nil
 	}
@@ -224,7 +237,7 @@ func (m *Market) ListCurrent(codeList []string, wait time.Duration) ([]CurrentQu
 }
 
 // Python 风格方法名包装
-func (m *Market) GetMarket(stockCode, startDate, endDate string, kType, adjustType int, wait time.Duration) ([]DailyBar, error) {
+func (m *Market) GetMarket(stockCode, startDate, endDate string, kType KType, adjustType int, wait time.Duration) ([]DailyBar, error) {
 	return m.GetDaily(stockCode, startDate, endDate, kType, adjustType, wait)
 }
 func (m *Market) GetMarketMin(stockCode string, wait time.Duration) ([]MinuteBar, error) {

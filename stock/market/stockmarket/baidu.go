@@ -10,9 +10,9 @@ import (
 	httpc "github.com/doarvid/go-adata/common/http"
 )
 
-func GetMarketDailyBaidu(stockCode string, startDate string, kType int, wait time.Duration) ([]DailyBar, error) {
+func GetMarketDailyBaidu(stockCode string, startDate string, kType KType, wait time.Duration) ([]DailyBar, error) {
 	client := httpc.NewClient()
-	url := fmt.Sprintf("https://finance.pae.baidu.com/selfselect/getstockquotation?all=1&isIndex=false&isBk=false&isBlock=false&isFutures=false&isStock=true&newFormat=1&group=quotation_kline_ab&finClientType=pc&code=%s&start_time=%s%%2000:00:00&ktype=%d", stockCode, startDate, kType)
+	url := fmt.Sprintf("https://finance.pae.baidu.com/selfselect/getstockquotation?all=1&isIndex=false&isBk=false&isBlock=false&isFutures=false&isStock=true&newFormat=1&group=quotation_kline_ab&finClientType=pc&code=%s&start_time=%s%%2000:00:00&ktype=%d", stockCode, startDate, int(kType))
 	var res struct {
 		ResultCode string `json:"ResultCode"`
 		Result     struct {

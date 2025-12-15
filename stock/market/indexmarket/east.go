@@ -1,60 +1,14 @@
 package indexmarket
 
 import (
-    "encoding/json"
-    "fmt"
-    "strconv"
-    "strings"
-    "time"
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
-    httpc "github.com/doarvid/go-adata/common/http"
+	httpc "github.com/doarvid/go-adata/common/http"
 )
-
-type IndexDailyBar struct {
-	TradeTime     string  `json:"trade_time"`
-	TradeDate     string  `json:"trade_date"`
-	Open          float64 `json:"open"`
-	Close         float64 `json:"close"`
-	High          float64 `json:"high"`
-	Low           float64 `json:"low"`
-	Volume        float64 `json:"volume"`
-	Amount        float64 `json:"amount"`
-	Change        float64 `json:"change"`
-	ChangePct     float64 `json:"change_pct"`
-	IndexCode     string  `json:"index_code"`
-	TurnoverRatio string  `json:"turnover_ratio"`
-	PreClose      float64 `json:"pre_close"`
-}
-
-type IndexMinuteBar struct {
-	TradeTime string  `json:"trade_time"`
-	TradeDate string  `json:"trade_date"`
-	Price     float64 `json:"price"`
-	Change    float64 `json:"change"`
-	ChangePct float64 `json:"change_pct"`
-	Volume    int64   `json:"volume"`
-	AvgPrice  float64 `json:"avg_price"`
-	Amount    float64 `json:"amount"`
-	Open      float64 `json:"open"`
-	Close     float64 `json:"close"`
-	High      float64 `json:"high"`
-	Low       float64 `json:"low"`
-	IndexCode string  `json:"index_code"`
-}
-
-type IndexCurrent struct {
-	TradeTime string  `json:"trade_time"`
-	TradeDate string  `json:"trade_date"`
-	Open      float64 `json:"open"`
-	High      float64 `json:"high"`
-	Low       float64 `json:"low"`
-	Price     float64 `json:"price"`
-	Change    float64 `json:"change"`
-	ChangePct float64 `json:"change_pct"`
-	Volume    float64 `json:"volume"`
-	Amount    float64 `json:"amount"`
-	IndexCode string  `json:"index_code"`
-}
 
 func GetIndexDailyEast(indexCode string, startDate string, kType int, wait time.Duration) ([]IndexDailyBar, error) {
 	if indexCode == "" {

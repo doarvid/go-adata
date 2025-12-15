@@ -38,3 +38,14 @@ func TestTradeCalendarStructureAndRange(t *testing.T) {
 		})
 	}
 }
+
+func TestLatestTradeDate(t *testing.T) {
+	days, err := LatestTradeDate()
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if len(days) == 0 {
+		t.Skipf("no data for latest year")
+		return
+	}
+}

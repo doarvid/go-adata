@@ -3,14 +3,33 @@ package stockmarket
 import (
 	"testing"
 	"time"
+
+	"github.com/doarvid/go-adata/stock/info/tradecalendar"
 )
+
+func TestGetMarketDaily(t *testing.T) {
+	stockCode := "002926"
+	startDate := "2025-11-13"
+	wait := 100 * time.Millisecond
+	m := NewMarket()
+	dailyBars, err := m.GetDaily(stockCode, startDate, tradecalendar.TradeDateNow(), KTypeDay, 0, wait)
+	if err != nil {
+		t.Errorf("GetMarketDaily failed: %v", err)
+	}
+	if len(dailyBars) == 0 {
+		t.Errorf("GetMarketDaily failed: empty daily bars")
+	}
+	for _, bar := range dailyBars {
+		t.Logf("%v", bar)
+	}
+	t.Logf("total %d bars", len(dailyBars))
+}
 
 func TestGetMarketDailyBaidu(t *testing.T) {
 	stockCode := "002926"
 	startDate := "2025-11-13"
-	kType := 1
 	wait := 100 * time.Millisecond
-	dailyBars, err := GetMarketDailyBaidu(stockCode, startDate, kType, wait)
+	dailyBars, err := GetMarketDailyBaidu(stockCode, startDate, KTypeDay, wait)
 	if err != nil {
 		t.Errorf("GetMarketDailyBaidu failed: %v", err)
 	}
@@ -27,9 +46,8 @@ func TestGetMarketDailyEast(t *testing.T) {
 	stockCode := "002926"
 	startDate := "2025-11-13"
 	endDate := "2025-11-18"
-	kType := 1
 	wait := 100 * time.Millisecond
-	dailyBars, err := GetMarketDailyEast(stockCode, startDate, endDate, kType, 1, wait)
+	dailyBars, err := GetMarketDailyEast(stockCode, startDate, endDate, KTypeDay, 1, wait)
 	if err != nil {
 		t.Errorf("GetMarketDailyEast failed: %v", err)
 	}
