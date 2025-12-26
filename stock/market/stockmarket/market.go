@@ -26,6 +26,8 @@ const (
 type Market struct {
 	MinWait time.Duration
 	Retries int
+
+	proxy string
 }
 
 type DailyBar struct {
@@ -110,7 +112,21 @@ type Five struct {
 	Bv5       int64   `json:"bv5"`        // 买5量(股)，如：2263
 }
 
-func NewMarket() *Market { return &Market{MinWait: 50 * time.Millisecond, Retries: 2} }
+type MarketOpt func(*Market)
+
+func WithProxy(proxy string) MarketOpt {
+	return func(m *Market) {
+		m.proxy = proxy
+	}
+}
+
+func NewMarket(opts ...MarketOpt) *Market {
+	m := &Market{MinWait: 50 * time.Millisecond, Retries: 2}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
 
 func (m *Market) GetDaily(stockCode, startDate, endDate string, kType KType, adjustType AdjustType, wait time.Duration) ([]DailyBar, error) {
 	if stockCode == "" {
