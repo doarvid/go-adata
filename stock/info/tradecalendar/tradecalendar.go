@@ -52,7 +52,7 @@ func TradeDate(t time.Time) string {
 func TradeDateNow() string {
 	return TradeDate(time.Now())
 }
-func LatestTradeDate() ([]Day, error) {
+func TradeDayN(days int) ([]Day, error) {
 	years := CalendarYears()
 	tradeDates, err := TradeCalendar(years[len(years)-1])
 	if err != nil {
@@ -67,7 +67,7 @@ func LatestTradeDate() ([]Day, error) {
 	var ret []Day
 	for i := len(tradeDates) - 1; i > 0; i-- {
 		if tradeDates[i].TradeDate == tradeDate {
-			for j := i; j > 0 && len(ret) < 360; j-- {
+			for j := i; j > 0 && len(ret) < days; j-- {
 				ret = append(ret, tradeDates[j])
 			}
 			break
