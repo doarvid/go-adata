@@ -2,11 +2,10 @@ package stockcode
 
 import (
 	"testing"
-	"time"
 )
 
 func TestAllStockCodes(t *testing.T) {
-	codes, err := AllCode(100 * time.Millisecond)
+	codes, err := AllCode()
 	if err != nil {
 		t.Fatalf("AllCode failed: %v", err)
 	}

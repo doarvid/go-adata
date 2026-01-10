@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"time"
 
 )
 
@@ -21,7 +20,7 @@ type Constituent struct {
 	ShortName string `json:"short_name"`
 }
 
-func AllIndexCodeEast(wait time.Duration) ([]IndexCode, error) {
+func AllIndexCodeEast() ([]IndexCode, error) {
 	client := getHTTPClient()
 	var out []IndexCode
 	for i := 0; i < 2; i++ {
@@ -52,10 +51,8 @@ func AllIndexCodeEast(wait time.Duration) ([]IndexCode, error) {
 				}(),
 				"fields": "f12,f13,f14",
 			}
-			if wait > 0 {
-				time.Sleep(wait)
-			}
-	resp, err := client.R().SetQueryParams(params).Get(base)
+			// wait handled by caller
+			resp, err := client.R().SetQueryParams(params).Get(base)
 			if err != nil {
 				return out, err
 			}
@@ -81,14 +78,12 @@ func AllIndexCodeEast(wait time.Duration) ([]IndexCode, error) {
 	return out, nil
 }
 
-func IndexConstituentBaidu(indexCode string, wait time.Duration) ([]Constituent, error) {
+func IndexConstituentBaidu(indexCode string) ([]Constituent, error) {
 	client := getHTTPClient()
 	var out []Constituent
 	for page := 0; page < 100; page++ {
 		url := fmt.Sprintf("https://gushitong.baidu.com/opendata?resource_id=5352&query=%s&code=%s&market=ab&group=asyn_ranking&pn=%d&rn=100&pc_web=1&finClientType=pc", indexCode, indexCode, page*50)
-		if wait > 0 {
-			time.Sleep(wait)
-		}
+		// wait handled by caller
 		resp, err := client.R().Get(url)
 		if err != nil {
 			return out, err

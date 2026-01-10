@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (im *IndexMarket) GetDailyEast(ctx context.Context, indexCode string, startDate string, kType int, wait time.Duration) ([]IndexDailyBar, error) {
+func (im *IndexMarket) GetDailyEast(ctx context.Context, indexCode string, startDate string, kType int) ([]IndexDailyBar, error) {
 	if indexCode == "" {
 		return []IndexDailyBar{}, nil
 	}
@@ -34,8 +34,8 @@ func (im *IndexMarket) GetDailyEast(ctx context.Context, indexCode string, start
 		"end":     "20500101",
 		"lmt":     "1000000",
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if im.cfg.Wait > 0 {
+		time.Sleep(im.cfg.Wait)
 	}
 	resp, err := im.client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2his.eastmoney.com/api/qt/stock/kline/get")
 	if err != nil {
@@ -80,7 +80,7 @@ func (im *IndexMarket) GetDailyEast(ctx context.Context, indexCode string, start
 	return out, nil
 }
 
-func (im *IndexMarket) GetMinuteEast(ctx context.Context, indexCode string, wait time.Duration) ([]IndexMinuteBar, error) {
+func (im *IndexMarket) GetMinuteEast(ctx context.Context, indexCode string) ([]IndexMinuteBar, error) {
 	if indexCode == "" {
 		return []IndexMinuteBar{}, nil
 	}
@@ -97,8 +97,8 @@ func (im *IndexMarket) GetMinuteEast(ctx context.Context, indexCode string, wait
 		"iscr":    "0",
 		"secid":   secId + "." + indexCode,
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if im.cfg.Wait > 0 {
+		time.Sleep(im.cfg.Wait)
 	}
 	resp, err := im.client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2his.eastmoney.com/api/qt/stock/trends2/get")
 	if err != nil {
@@ -143,7 +143,7 @@ func (im *IndexMarket) GetMinuteEast(ctx context.Context, indexCode string, wait
 	return out, nil
 }
 
-func (im *IndexMarket) GetCurrentEast(ctx context.Context, indexCode string, wait time.Duration) (IndexCurrent, error) {
+func (im *IndexMarket) GetCurrentEast(ctx context.Context, indexCode string) (IndexCurrent, error) {
 	if indexCode == "" {
 		return IndexCurrent{}, nil
 	}
@@ -162,8 +162,8 @@ func (im *IndexMarket) GetCurrentEast(ctx context.Context, indexCode string, wai
 		"secid":  secId + "." + indexCode,
 		"wbp2u":  "|0|0|0|web",
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if im.cfg.Wait > 0 {
+		time.Sleep(im.cfg.Wait)
 	}
 	resp, err := im.client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/stock/get")
 	if err != nil {

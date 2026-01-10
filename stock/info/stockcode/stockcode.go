@@ -26,21 +26,21 @@ type StockCode struct {
 	ListDate  *time.Time `json:"list_date"`
 }
 
-func AllCode(wait time.Duration) ([]StockCode, error) {
-	baidu, _ := marketRankBaidu(wait)
+func AllCode() ([]StockCode, error) {
+	baidu, _ := marketRankBaidu()
 	var base []StockCode
 	if len(baidu) >= 5000 {
 		base = baidu
 	} else {
-		east, _ := marketRankEast(wait)
+		east, _ := marketRankEast()
 		if len(east) >= 5000 {
 			base = east
 		} else {
-			sina, _ := marketRankSina(wait)
+			sina, _ := marketRankSina()
 			base = sina
 		}
 	}
-	ipo, _ := newSubEast(wait)
+	ipo, _ := newSubEast()
 	codes := mergeUnique(ipo, base)
 	if len(codes) == 0 {
 		return nil, errors.New("no codes fetched")
@@ -50,7 +50,7 @@ func AllCode(wait time.Duration) ([]StockCode, error) {
 	return codes, nil
 }
 
-func marketRankEast(wait time.Duration) ([]StockCode, error) {
+func marketRankEast() ([]StockCode, error) {
 	client := getHTTPClient()
 	url := "https://82.push2.eastmoney.com/api/qt/clist/get"
 	page := 1
@@ -70,12 +70,9 @@ func marketRankEast(wait time.Duration) ([]StockCode, error) {
 			"fields": "f12,f14",
 			"_":      "1623833739532",
 		}
-		if wait > 0 {
-			time.Sleep(wait)
-		}
-	resp, err := client.R().SetQueryParams(params).Get(url)
-		if err != nil {
-			return res, err
+		resp, e := client.R().SetQueryParams(params).Get(url)
+		if e != nil {
+			return res, e
 		}
 		var data struct {
 			Data struct {
@@ -104,15 +101,13 @@ func marketRankEast(wait time.Duration) ([]StockCode, error) {
 	return res, nil
 }
 
-func marketRankBaidu(wait time.Duration) ([]StockCode, error) {
+func marketRankBaidu() ([]StockCode, error) {
 	client := getHTTPClient()
 	baseURL := "https://finance.pae.baidu.com/selfselect/getmarketrank"
 	maxPageSize := 200
 	out := make([]StockCode, 0, 5000)
 	for page := 0; page < 49; page++ {
-		if wait > 0 {
-			time.Sleep(wait)
-		}
+		// wait handled by caller
 		params := map[string]string{
 			"sort_type":     "1",
 			"sort_key":      "14",
@@ -123,8 +118,8 @@ func marketRankBaidu(wait time.Duration) ([]StockCode, error) {
 			"pn":            strconv.Itoa(page * maxPageSize),
 			"rn":            strconv.Itoa(maxPageSize),
 		}
-		resp, err := client.R().SetHeaders(header.BaiduJSONHeaders()).SetQueryParams(params).Get(baseURL)
-		if err != nil {
+		resp, e := client.R().SetHeaders(header.BaiduJSONHeaders()).SetQueryParams(params).Get(baseURL)
+		if e != nil {
 			continue
 		}
 		var res any
@@ -171,13 +166,11 @@ func marketRankBaidu(wait time.Duration) ([]StockCode, error) {
 	return out, nil
 }
 
-func marketRankSina(wait time.Duration) ([]StockCode, error) {
+func marketRankSina() ([]StockCode, error) {
 	client := getHTTPClient()
 	out := make([]StockCode, 0, 5000)
 	for page := 1; page < 200; page++ {
-		if wait > 0 {
-			time.Sleep(wait)
-		}
+		// wait handled by caller
 		url := "https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData"
 		params := map[string]string{
 			"page":   strconv.Itoa(page),
@@ -188,8 +181,8 @@ func marketRankSina(wait time.Duration) ([]StockCode, error) {
 			"symbol": "",
 			"_s_r_a": "page",
 		}
-		resp, err := client.R().SetQueryParams(params).Get(url)
-		if err != nil {
+		resp, e := client.R().SetQueryParams(params).Get(url)
+		if e != nil {
 			continue
 		}
 		var arr []map[string]any
@@ -215,7 +208,7 @@ func marketRankSina(wait time.Duration) ([]StockCode, error) {
 	return out, nil
 }
 
-func newSubEast(wait time.Duration) ([]StockCode, error) {
+func newSubEast() ([]StockCode, error) {
 	client := getHTTPClient()
 	var res []StockCode
 	for i := 0; i < 200; i++ {
@@ -232,12 +225,10 @@ func newSubEast(wait time.Duration) ([]StockCode, error) {
 			"source":      "WEB",
 			"client":      "WEB",
 		}
-		if wait > 0 {
-			time.Sleep(wait)
-		}
-		resp, err := client.R().SetQueryParams(params).Get(url)
-		if err != nil {
-			return res, err
+		// wait handled by caller
+		resp, e := client.R().SetQueryParams(params).Get(url)
+		if e != nil {
+			return res, e
 		}
 		var data struct {
 			Result struct {

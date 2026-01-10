@@ -12,6 +12,8 @@ type IndexMarketConfig struct {
 	UserAgent string
 	Headers   map[string]string
 	Client    *resty.Client
+	Wait      time.Duration
+	Retries   int
 }
 
 type IndexMarketOption func(*IndexMarketConfig)
@@ -35,6 +37,12 @@ func WithHeaders(h map[string]string) IndexMarketOption {
 func WithClient(c *resty.Client) IndexMarketOption {
 	return func(cfg *IndexMarketConfig) { cfg.Client = c }
 }
+func WithWait(d time.Duration) IndexMarketOption {
+	return func(cfg *IndexMarketConfig) { cfg.Wait = d }
+}
+func WithRetries(n int) IndexMarketOption {
+	return func(cfg *IndexMarketConfig) { cfg.Retries = n }
+}
 
 type IndexMarket struct {
 	client *resty.Client
@@ -46,6 +54,8 @@ func NewIndexMarket(opts ...IndexMarketOption) *IndexMarket {
 		Timeout:   15 * time.Second,
 		UserAgent: "go-adata/indexmarket",
 		Headers:   map[string]string{},
+		Wait:      50 * time.Millisecond,
+		Retries:   2,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -65,4 +75,3 @@ func NewIndexMarket(opts ...IndexMarketOption) *IndexMarket {
 	}
 	return &IndexMarket{client: c, cfg: cfg}
 }
-

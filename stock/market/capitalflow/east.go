@@ -1,11 +1,9 @@
 package capitalflow
 
 import (
-    "encoding/json"
-    "strconv"
-    "strings"
-    "time"
-
+	"encoding/json"
+	"strconv"
+	"strings"
 )
 
 type FlowMin struct {
@@ -28,7 +26,7 @@ type FlowDaily struct {
 	MaxNetInflow  float64 `json:"max_net_inflow"`
 }
 
-func GetStockCapitalFlowMinEast(stockCode string, wait time.Duration) ([]FlowMin, error) {
+func GetStockCapitalFlowMinEast(stockCode string) ([]FlowMin, error) {
 	if stockCode == "" {
 		return []FlowMin{}, nil
 	}
@@ -44,9 +42,7 @@ func GetStockCapitalFlowMinEast(stockCode string, wait time.Duration) ([]FlowMin
 		"fields2": "f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61,f62,f63,f64,f65",
 		"secid":   cid + "." + stockCode,
 	}
-	if wait > 0 {
-		time.Sleep(wait)
-	}
+	// wait handled by caller
 	resp, err := client.R().SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/stock/fflow/kline/get")
 	if err != nil {
 		return nil, err
@@ -80,7 +76,7 @@ func GetStockCapitalFlowMinEast(stockCode string, wait time.Duration) ([]FlowMin
 	return out, nil
 }
 
-func GetStockCapitalFlowEast(stockCode string, startDate string, endDate string, wait time.Duration) ([]FlowDaily, error) {
+func GetStockCapitalFlowEast(stockCode string, startDate string, endDate string) ([]FlowDaily, error) {
 	if stockCode == "" {
 		return []FlowDaily{}, nil
 	}
@@ -96,9 +92,7 @@ func GetStockCapitalFlowEast(stockCode string, startDate string, endDate string,
 		"fields2": "f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61",
 		"secid":   cid + "." + stockCode,
 	}
-	if wait > 0 {
-		time.Sleep(wait)
-	}
+	// wait handled by caller
 	resp, err := client.R().SetQueryParams(params).Get("https://push2his.eastmoney.com/api/qt/stock/fflow/daykline/get")
 	if err != nil {
 		return nil, err

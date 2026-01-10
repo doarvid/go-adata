@@ -9,15 +9,13 @@ import (
 	"time"
 )
 
-func GetStockCapitalFlowMinBaidu(stockCode string, wait time.Duration) ([]FlowMin, error) {
+func GetStockCapitalFlowMinBaidu(stockCode string) ([]FlowMin, error) {
 	if stockCode == "" {
 		return []FlowMin{}, nil
 	}
 	client := getHTTPClient()
 	url := fmt.Sprintf("https://finance.pae.baidu.com/vapi/v1/fundflow?finance_type=stock&fund_flow_type=&type=stock&market=ab&code=%s&belongs=stocklevelone&finClientType=pc", stockCode)
-	if wait > 0 {
-		time.Sleep(wait)
-	}
+	// wait handled by caller
 	resp, err := client.R().Get(url)
 	if err != nil {
 		return nil, err
@@ -58,7 +56,7 @@ func GetStockCapitalFlowMinBaidu(stockCode string, wait time.Duration) ([]FlowMi
 	return out, nil
 }
 
-func GetStockCapitalFlowBaidu(stockCode string, startDate string, endDate string, wait time.Duration) ([]FlowDaily, error) {
+func GetStockCapitalFlowBaidu(stockCode string, startDate string, endDate string) ([]FlowDaily, error) {
 	if stockCode == "" {
 		return []FlowDaily{}, nil
 	}
@@ -75,9 +73,7 @@ func GetStockCapitalFlowBaidu(stockCode string, startDate string, endDate string
 	isEnd := false
 	for i := 0; i < 500; i++ {
 		url := fmt.Sprintf("https://finance.pae.baidu.com/vapi/v1/fundsortlist?code=%s&market=ab&finance_type=stock&tab=day&from=history&date=%s&pn=0&rn=20&finClientType=pc", stockCode, endDate)
-		if wait > 0 {
-			time.Sleep(wait)
-		}
+		// wait handled by caller
 		resp, err := client.R().Get(url)
 		if err != nil {
 			return nil, err

@@ -58,39 +58,36 @@ type Market struct {
 
 func New() *Market { return &Market{MinWait: 50 * time.Millisecond, Retries: 2} }
 
-func (m *Market) GetDaily(indexCode, startDate string, kType int, wait time.Duration) ([]IndexDailyBar, error) {
+func (m *Market) GetDaily(indexCode, startDate string, kType int) ([]IndexDailyBar, error) {
 	if indexCode == "" {
 		return []IndexDailyBar{}, nil
-	}
-	if wait < m.MinWait {
-		wait = m.MinWait
 	}
 	var east []IndexDailyBar
 	var err error
 	for i := 0; i <= m.Retries; i++ {
-		east, err = NewIndexMarket().GetDailyEast(context.Background(), indexCode, startDate, kType, wait)
+		east, err = NewIndexMarket().GetDailyEast(context.Background(), indexCode, startDate, kType)
 		if err == nil && len(east) > 0 {
 			return NormalizeIndexDaily(east), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	var bd []IndexDailyBar
 	var err2 error
 	for i := 0; i <= m.Retries; i++ {
-		bd, err2 = GetIndexDailyBaidu(indexCode, startDate, kType, wait)
+		bd, err2 = GetIndexDailyBaidu(indexCode, startDate, kType)
 		if err2 == nil && len(bd) > 0 {
 			return NormalizeIndexDaily(bd), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	var ths []IndexDailyBar
 	var err3 error
 	for i := 0; i <= m.Retries; i++ {
-		ths, err3 = NewIndexMarket().GetDailyThs(context.Background(), indexCode, startDate, kType, wait)
+		ths, err3 = NewIndexMarket().GetDailyThs(context.Background(), indexCode, startDate, kType)
 		if err3 == nil && len(ths) > 0 {
 			return NormalizeIndexDaily(ths), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	if len(bd) > 0 {
 		return NormalizeIndexDaily(bd), err
@@ -101,30 +98,27 @@ func (m *Market) GetDaily(indexCode, startDate string, kType int, wait time.Dura
 	return NormalizeIndexDaily(east), err
 }
 
-func (m *Market) GetMinute(indexCode string, wait time.Duration) ([]IndexMinuteBar, error) {
+func (m *Market) GetMinute(indexCode string) ([]IndexMinuteBar, error) {
 	if indexCode == "" {
 		return []IndexMinuteBar{}, nil
-	}
-	if wait < m.MinWait {
-		wait = m.MinWait
 	}
 	var east []IndexMinuteBar
 	var err error
 	for i := 0; i <= m.Retries; i++ {
-		east, err = NewIndexMarket().GetMinuteEast(context.Background(), indexCode, wait)
+		east, err = NewIndexMarket().GetMinuteEast(context.Background(), indexCode)
 		if err == nil && len(east) > 0 {
 			return NormalizeIndexMinute(east), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	var ths []IndexMinuteBar
 	var err2 error
 	for i := 0; i <= m.Retries; i++ {
-		ths, err2 = NewIndexMarket().GetMinuteThs(context.Background(), indexCode, wait)
+		ths, err2 = NewIndexMarket().GetMinuteThs(context.Background(), indexCode)
 		if err2 == nil && len(ths) > 0 {
 			return NormalizeIndexMinute(ths), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	if len(ths) > 0 {
 		return NormalizeIndexMinute(ths), err
@@ -132,39 +126,36 @@ func (m *Market) GetMinute(indexCode string, wait time.Duration) ([]IndexMinuteB
 	return NormalizeIndexMinute(east), err
 }
 
-func (m *Market) GetCurrent(indexCode string, wait time.Duration) (IndexCurrent, error) {
+func (m *Market) GetCurrent(indexCode string) (IndexCurrent, error) {
 	if indexCode == "" {
 		return IndexCurrent{}, nil
-	}
-	if wait < m.MinWait {
-		wait = m.MinWait
 	}
 	var cur IndexCurrent
 	var err error
 	for i := 0; i <= m.Retries; i++ {
-		cur, err = NewIndexMarket().GetCurrentEast(context.Background(), indexCode, wait)
+		cur, err = NewIndexMarket().GetCurrentEast(context.Background(), indexCode)
 		if cur.IndexCode != "" {
 			return NormalizeIndexCurrent(cur), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	var ths IndexCurrent
 	var err2 error
 	for i := 0; i <= m.Retries; i++ {
-		ths, err2 = NewIndexMarket().GetCurrentThs(context.Background(), indexCode, wait)
+		ths, err2 = NewIndexMarket().GetCurrentThs(context.Background(), indexCode)
 		if ths.IndexCode != "" {
 			return NormalizeIndexCurrent(ths), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	var mins []IndexMinuteBar
 	var merr error
 	for i := 0; i <= m.Retries; i++ {
-		mins, merr = NewIndexMarket().GetMinuteEast(context.Background(), indexCode, wait)
+		mins, merr = NewIndexMarket().GetMinuteEast(context.Background(), indexCode)
 		if merr == nil && len(mins) > 0 {
 			break
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	if len(mins) > 0 {
 		last := mins[len(mins)-1]

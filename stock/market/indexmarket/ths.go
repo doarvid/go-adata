@@ -38,7 +38,7 @@ func yearsFrom(startDate string) []string {
 	return out
 }
 
-func (im *IndexMarket) GetDailyThs(ctx context.Context, indexCode, startDate string, kType int, wait time.Duration) ([]IndexDailyBar, error) {
+func (im *IndexMarket) GetDailyThs(ctx context.Context, indexCode, startDate string, kType int) ([]IndexDailyBar, error) {
 	if indexCode == "" {
 		return []IndexDailyBar{}, nil
 	}
@@ -47,8 +47,8 @@ func (im *IndexMarket) GetDailyThs(ctx context.Context, indexCode, startDate str
 	out := make([]IndexDailyBar, 0, 1024)
 	for _, year := range yrs {
 		url := fmt.Sprintf("http://d.10jqka.com.cn/v4/line/zs_%s/%d1/%s.js", concept, kType-1, year)
-		if wait > 0 {
-			time.Sleep(wait)
+		if im.cfg.Wait > 0 {
+			time.Sleep(im.cfg.Wait)
 		}
 		resp, err := im.client.R().SetContext(ctx).Get(url)
 		if err != nil {
@@ -99,14 +99,14 @@ func (im *IndexMarket) GetDailyThs(ctx context.Context, indexCode, startDate str
 	return out, nil
 }
 
-func (im *IndexMarket) GetMinuteThs(ctx context.Context, indexCode string, wait time.Duration) ([]IndexMinuteBar, error) {
+func (im *IndexMarket) GetMinuteThs(ctx context.Context, indexCode string) ([]IndexMinuteBar, error) {
 	if indexCode == "" {
 		return []IndexMinuteBar{}, nil
 	}
 	concept := mapIndexToTHS(indexCode)
 	url := fmt.Sprintf("http://d.10jqka.com.cn/v4/time/zs_%s/last.js", concept)
-	if wait > 0 {
-		time.Sleep(wait)
+	if im.cfg.Wait > 0 {
+		time.Sleep(im.cfg.Wait)
 	}
 	resp, err := im.client.R().SetContext(ctx).Get(url)
 	if err != nil {
@@ -157,14 +157,14 @@ func (im *IndexMarket) GetMinuteThs(ctx context.Context, indexCode string, wait 
 	return out, nil
 }
 
-func (im *IndexMarket) GetCurrentThs(ctx context.Context, indexCode string, wait time.Duration) (IndexCurrent, error) {
+func (im *IndexMarket) GetCurrentThs(ctx context.Context, indexCode string) (IndexCurrent, error) {
 	if indexCode == "" {
 		return IndexCurrent{}, nil
 	}
 	concept := mapIndexToTHS(indexCode)
 	url := fmt.Sprintf("http://d.10jqka.com.cn/v4/line/zs_%s/01/today.js", concept)
-	if wait > 0 {
-		time.Sleep(wait)
+	if im.cfg.Wait > 0 {
+		time.Sleep(im.cfg.Wait)
 	}
 	resp, err := im.client.R().SetContext(ctx).Get(url)
 	if err != nil {
