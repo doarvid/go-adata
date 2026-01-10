@@ -7,7 +7,7 @@ import (
 
 func TestMineClearanceTDX(t *testing.T) {
 	mc := New()
-	rows, err := mc.EvaluateTDX(context.Background(), "600811", 0)
+	rows, err := mc.EvaluateTDX(context.Background(), "600811")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -18,4 +18,3 @@ func TestMineClearanceTDX(t *testing.T) {
 		t.Logf("%+v\n", row)
 	}
 }
-

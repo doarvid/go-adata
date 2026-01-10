@@ -51,21 +51,29 @@ type Config struct {
 	Proxy     string
 	UserAgent string
 	Client    *resty.Client
+	Wait      time.Duration
+	Retries   int
 }
 type Option func(*Config)
+
 func WithTimeout(d time.Duration) Option { return func(cfg *Config) { cfg.Timeout = d } }
 func WithProxy(p string) Option          { return func(cfg *Config) { cfg.Proxy = p } }
 func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAgent = ua } }
 func WithClient(c *resty.Client) Option  { return func(cfg *Config) { cfg.Client = c } }
+func WithWait(d time.Duration) Option    { return func(cfg *Config) { cfg.Wait = d } }
+func WithRetries(n int) Option           { return func(cfg *Config) { cfg.Retries = n } }
 
 type Client struct {
 	client *resty.Client
 	cfg    Config
 }
+
 func New(opts ...Option) *Client {
 	cfg := Config{
 		Timeout:   15 * time.Second,
 		UserAgent: "go-adata/hot",
+		Wait:      50 * time.Millisecond,
+		Retries:   2,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -86,9 +94,9 @@ func New(opts ...Option) *Client {
 	return &Client{client: c, cfg: cfg}
 }
 
-func (h *Client) Popular(ctx context.Context, wait time.Duration) ([]PopRankRow, error) {
-	if wait > 0 {
-		time.Sleep(wait)
+func (h *Client) Popular(ctx context.Context) ([]PopRankRow, error) {
+	if h.cfg.Wait > 0 {
+		time.Sleep(h.cfg.Wait)
 	}
 	params := map[string]any{
 		"appId":      "appId01",
@@ -121,8 +129,8 @@ func (h *Client) Popular(ctx context.Context, wait time.Duration) ([]PopRankRow,
 	}
 	q := strings.Join(marks, ",")
 	url := "https://push2.eastmoney.com/api/qt/ulist.np/get?ut=f057cbcbce2a86e2866ab8877db1d059&fltt=2&invt=2&fields=f14,f3,f12,f2&secids=" + q
-	if wait > 0 {
-		time.Sleep(wait)
+	if h.cfg.Wait > 0 {
+		time.Sleep(h.cfg.Wait)
 	}
 	resp2, err := h.client.R().SetContext(ctx).Get(url)
 	if err != nil {
@@ -147,10 +155,10 @@ func (h *Client) Popular(ctx context.Context, wait time.Duration) ([]PopRankRow,
 	return out, nil
 }
 
-func (h *Client) Stocks(ctx context.Context, wait time.Duration) ([]HotRankRow, error) {
+func (h *Client) Stocks(ctx context.Context) ([]HotRankRow, error) {
 	url := "https://dq.10jqka.com.cn/fuyao/hot_list_data/out/hot_list/v1/stock?stock_type=a&type=hour&list_type=normal"
-	if wait > 0 {
-		time.Sleep(wait)
+	if h.cfg.Wait > 0 {
+		time.Sleep(h.cfg.Wait)
 	}
 	resp, err := h.client.R().SetContext(ctx).Get(url)
 	if err != nil {
@@ -193,14 +201,14 @@ func (h *Client) Stocks(ctx context.Context, wait time.Duration) ([]HotRankRow, 
 	return out, nil
 }
 
-func (h *Client) Concepts(ctx context.Context, plateType PlateType, wait time.Duration) ([]HotConceptRow, error) {
+func (h *Client) Concepts(ctx context.Context, plateType PlateType) ([]HotConceptRow, error) {
 	if plateType != PlateTypeConcept && plateType != PlateTypeIndustry {
 		return nil, fmt.Errorf("invalid plate type: %s", plateType)
 	}
 	t := string(plateType)
 	url := fmt.Sprintf("https://dq.10jqka.com.cn/fuyao/hot_list_data/out/hot_list/v1/plate?type=%s", t)
-	if wait > 0 {
-		time.Sleep(wait)
+	if h.cfg.Wait > 0 {
+		time.Sleep(h.cfg.Wait)
 	}
 	resp, err := h.client.R().SetContext(ctx).Get(url)
 	if err != nil {

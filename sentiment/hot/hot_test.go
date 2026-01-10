@@ -7,7 +7,7 @@ import (
 
 func TestPopRank100East(t *testing.T) {
 	h := New()
-	rows, err := h.Popular(context.Background(), 0)
+	rows, err := h.Popular(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +21,7 @@ func TestPopRank100East(t *testing.T) {
 
 func TestHotRank100Ths(t *testing.T) {
 	h := New()
-	rows, err := h.Stocks(context.Background(), 0)
+	rows, err := h.Stocks(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestHotRank100Ths(t *testing.T) {
 
 func TestHotConcept20Ths(t *testing.T) {
 	h := New()
-	rows, err := h.Concepts(context.Background(), PlateTypeConcept, 0)
+	rows, err := h.Concepts(context.Background(), PlateTypeConcept)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,4 +46,3 @@ func TestHotConcept20Ths(t *testing.T) {
 		t.Logf("%+v\n", row)
 	}
 }
-

@@ -7,7 +7,7 @@ import (
 
 func TestStockLiftingLastMonth(t *testing.T) {
 	sl := New()
-	rows, err := sl.LastMonth(context.Background(), 0)
+	rows, err := sl.LastMonth(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -19,4 +19,3 @@ func TestStockLiftingLastMonth(t *testing.T) {
 	}
 	t.Logf("total %d rows", len(rows))
 }
-

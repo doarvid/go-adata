@@ -7,7 +7,7 @@ import (
 
 func TestSecuritiesMargin(t *testing.T) {
 	m := New()
-	rows, err := m.History(context.Background(), "2023-07-21", 0)
+	rows, err := m.History(context.Background(), "2023-07-21")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -19,4 +19,3 @@ func TestSecuritiesMargin(t *testing.T) {
 	}
 	t.Logf("total %d rows", len(rows))
 }
-

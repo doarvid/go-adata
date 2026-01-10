@@ -7,7 +7,7 @@ import (
 
 func TestNorthFlow(t *testing.T) {
 	c := New()
-	rows, err := c.History(context.Background(), "2025-11-12", 0)
+	rows, err := c.History(context.Background(), "2025-11-12")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +21,7 @@ func TestNorthFlow(t *testing.T) {
 
 func TestNorthFlowMinute(t *testing.T) {
 	c := New()
-	rows, err := c.Minute(context.Background(), 0)
+	rows, err := c.Minute(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestNorthFlowMinute(t *testing.T) {
 
 func TestNorthFlowCurrent(t *testing.T) {
 	c := New()
-	row, err := c.Current(context.Background(), 0)
+	row, err := c.Current(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,4 +44,3 @@ func TestNorthFlowCurrent(t *testing.T) {
 	}
 	t.Logf("%+v\n", row)
 }
-

@@ -1,18 +1,19 @@
 package concept
 
 import (
+	"context"
 	_ "embed"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"io"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-resty/resty/v2"
+
 	"github.com/doarvid/go-adata/common/codeutils"
-	"context"
 )
 
 //go:embed all_concept_code_east.csv
@@ -57,15 +58,55 @@ func LoadAllConceptCodesFromCSV() ([]ConceptCode, error) {
 	return out, nil
 }
 
+type Config struct {
+	Timeout   time.Duration
+	Proxy     string
+	UserAgent string
+	Client    *resty.Client
+	Wait      time.Duration
+	Retries   int
+}
+type Option func(*Config)
+
+func WithTimeout(d time.Duration) Option { return func(cfg *Config) { cfg.Timeout = d } }
+func WithProxy(p string) Option          { return func(cfg *Config) { cfg.Proxy = p } }
+func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAgent = ua } }
+func WithClient(c *resty.Client) Option  { return func(cfg *Config) { cfg.Client = c } }
+func WithWait(d time.Duration) Option    { return func(cfg *Config) { cfg.Wait = d } }
+func WithRetries(n int) Option           { return func(cfg *Config) { cfg.Retries = n } }
+
 type Concept struct {
 	client *resty.Client
+	cfg    Config
 }
 
-func NewConcept() *Concept {
-	return &Concept{client: getHTTPClient()}
+func NewConcept(opts ...Option) *Concept {
+	cfg := Config{
+		Timeout:   15 * time.Second,
+		UserAgent: "go-adata/concept",
+		Wait:      50 * time.Millisecond,
+		Retries:   2,
+	}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var c *resty.Client
+	if cfg.Client != nil {
+		c = cfg.Client
+	} else {
+		c = resty.New()
+		c.SetTimeout(cfg.Timeout)
+		if cfg.UserAgent != "" {
+			c.SetHeader("User-Agent", cfg.UserAgent)
+		}
+		if cfg.Proxy != "" {
+			c.SetProxy(cfg.Proxy)
+		}
+	}
+	return &Concept{client: c, cfg: cfg}
 }
 
-func (c *Concept) AllConceptCodesEast(ctx context.Context, wait time.Duration) ([]ConceptCode, error) {
+func (c *Concept) AllConceptCodesEast(ctx context.Context) ([]ConceptCode, error) {
 	client := c.client
 	page := 1
 	size := 100
@@ -80,8 +121,8 @@ func (c *Concept) AllConceptCodesEast(ctx context.Context, wait time.Duration) (
 			"fid":    "f62",
 			"fs":     "m:90+t:3",
 		}
-		if wait > 0 {
-			time.Sleep(wait)
+		if c.cfg.Wait > 0 {
+			time.Sleep(c.cfg.Wait)
 		}
 		resp, err := client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/clist/get")
 		if err != nil {
@@ -122,7 +163,7 @@ func (c *Concept) AllConceptCodesEast(ctx context.Context, wait time.Duration) (
 	return out, nil
 }
 
-func (c *Concept) GetConceptEast(ctx context.Context, stockCode string, wait time.Duration) ([]ConceptInfo, error) {
+func (c *Concept) GetConceptEast(ctx context.Context, stockCode string) ([]ConceptInfo, error) {
 	client := c.client
 	sc := codeutils.CompileExchangeByStockCode(stockCode)
 	params := map[string]string{
@@ -137,8 +178,8 @@ func (c *Concept) GetConceptEast(ctx context.Context, stockCode string, wait tim
 		"source":       "HSF10",
 		"client":       "PC",
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if c.cfg.Wait > 0 {
+		time.Sleep(c.cfg.Wait)
 	}
 	resp, err := client.R().SetContext(ctx).SetQueryParams(params).Get("https://datacenter.eastmoney.com/securities/api/data/v1/get")
 	if err != nil {
@@ -165,7 +206,7 @@ func (c *Concept) GetConceptEast(ctx context.Context, stockCode string, wait tim
 	return out, nil
 }
 
-func (c *Concept) ConstituentEast(ctx context.Context, conceptCode string, wait time.Duration) ([]Constituent, error) {
+func (c *Concept) ConstituentEast(ctx context.Context, conceptCode string) ([]Constituent, error) {
 	client := c.client
 	var out []Constituent
 	page := 1
@@ -181,8 +222,8 @@ func (c *Concept) ConstituentEast(ctx context.Context, conceptCode string, wait 
 			"fs":     "b:" + conceptCode,
 			"fields": "f12,f14",
 		}
-		if wait > 0 {
-			time.Sleep(wait)
+		if c.cfg.Wait > 0 {
+			time.Sleep(c.cfg.Wait)
 		}
 		resp, err := client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/clist/get")
 		if err != nil {

@@ -38,6 +38,8 @@ type Config struct {
 	Proxy     string
 	UserAgent string
 	Client    *resty.Client
+	Wait      time.Duration
+	Retries   int
 }
 type Option func(*Config)
 
@@ -45,6 +47,8 @@ func WithTimeout(d time.Duration) Option { return func(cfg *Config) { cfg.Timeou
 func WithProxy(p string) Option          { return func(cfg *Config) { cfg.Proxy = p } }
 func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAgent = ua } }
 func WithClient(c *resty.Client) Option  { return func(cfg *Config) { cfg.Client = c } }
+func WithWait(d time.Duration) Option    { return func(cfg *Config) { cfg.Wait = d } }
+func WithRetries(n int) Option           { return func(cfg *Config) { cfg.Retries = n } }
 
 type Client struct {
 	client *resty.Client
@@ -55,6 +59,8 @@ func New(opts ...Option) *Client {
 	cfg := Config{
 		Timeout:   15 * time.Second,
 		UserAgent: "go-adata/northflow",
+		Wait:      50 * time.Millisecond,
+		Retries:   2,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -75,7 +81,7 @@ func New(opts ...Option) *Client {
 	return &Client{client: c, cfg: cfg}
 }
 
-func (c *Client) History(ctx context.Context, startDate string, wait time.Duration) ([]Daily, error) {
+func (c *Client) History(ctx context.Context, startDate string) ([]Daily, error) {
 	currPage := 1
 	out := make([]Daily, 0, 1024)
 	var start time.Time
@@ -95,8 +101,8 @@ func (c *Client) History(ctx context.Context, startDate string, wait time.Durati
 		base := "https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=TRADE_DATE&sortTypes=-1&pageSize=1000&pageNumber=" + toString(currPage) + "&reportName=RPT_MUTUAL_DEAL_HISTORY&columns=ALL&source=WEB&client=WEB&"
 		sgtURL := base + "filter=(MUTUAL_TYPE=%27001%27)"
 		hgtURL := base + "filter=(MUTUAL_TYPE=%27003%27)"
-		if wait > 0 {
-			time.Sleep(wait)
+		if c.cfg.Wait > 0 {
+			time.Sleep(c.cfg.Wait)
 		}
 		resp1, err1 := c.client.R().SetContext(ctx).Get(sgtURL)
 		if err1 != nil {
@@ -174,25 +180,25 @@ func (c *Client) History(ctx context.Context, startDate string, wait time.Durati
 	return out, nil
 }
 
-func (c *Client) Minute(ctx context.Context, wait time.Duration) ([]Minute, error) {
-	r, _ := c.minuteEast(ctx, wait)
+func (c *Client) Minute(ctx context.Context) ([]Minute, error) {
+	r, _ := c.minuteEast(ctx)
 	if len(r) == 0 {
-		r, _ = c.minuteThs(ctx, wait)
+		r, _ = c.minuteThs(ctx)
 	}
 	return r, nil
 }
 
-func (c *Client) Current(ctx context.Context, wait time.Duration) (Minute, error) {
-	mins, _ := c.Minute(ctx, wait)
+func (c *Client) Current(ctx context.Context) (Minute, error) {
+	mins, _ := c.Minute(ctx)
 	if len(mins) == 0 {
 		return Minute{}, nil
 	}
 	return mins[len(mins)-1], nil
 }
 
-func (c *Client) minuteThs(ctx context.Context, wait time.Duration) ([]Minute, error) {
-	if wait > 0 {
-		time.Sleep(wait)
+func (c *Client) minuteThs(ctx context.Context) ([]Minute, error) {
+	if c.cfg.Wait > 0 {
+		time.Sleep(c.cfg.Wait)
 	}
 	resp, err := c.client.R().SetContext(ctx).Get("https://data.hexin.cn/market/hsgtApi/method/dayChart/")
 	if err != nil {
@@ -234,10 +240,10 @@ func (c *Client) minuteThs(ctx context.Context, wait time.Duration) ([]Minute, e
 	return out, nil
 }
 
-func (c *Client) minuteEast(ctx context.Context, wait time.Duration) ([]Minute, error) {
+func (c *Client) minuteEast(ctx context.Context) ([]Minute, error) {
 	url := "https://push2.eastmoney.com/api/qt/kamt.rtmin/get?fields1=f1,f3&fields2=f51,f52,f54,f56&ut=b2884a393a59ad64002292a3e90d46a5"
-	if wait > 0 {
-		time.Sleep(wait)
+	if c.cfg.Wait > 0 {
+		time.Sleep(c.cfg.Wait)
 	}
 	resp, err := c.client.R().SetContext(ctx).Get(url)
 	if err != nil {

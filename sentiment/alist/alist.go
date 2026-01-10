@@ -40,13 +40,13 @@ type DetailRow struct {
 	Reason          string  `json:"reason"`
 }
 
-func (c *Client) Daily(ctx context.Context, reportDate string, wait time.Duration) ([]DailyRow, error) {
+func (c *Client) Daily(ctx context.Context, reportDate string) ([]DailyRow, error) {
 	if reportDate == "" {
 		reportDate = time.Now().Format("2006-01-02")
 	}
 	url := "https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=SECURITY_CODE,TRADE_DATE&sortTypes=1,-1&pageSize=500&pageNumber=1&reportName=RPT_DAILYBILLBOARD_DETAILSNEW&columns=SECURITY_CODE,SECUCODE,SECURITY_NAME_ABBR,TRADE_DATE,EXPLAIN,CLOSE_PRICE,CHANGE_RATE,BILLBOARD_NET_AMT,BILLBOARD_BUY_AMT,BILLBOARD_SELL_AMT,BILLBOARD_DEAL_AMT,ACCUM_AMOUNT,DEAL_NET_RATIO,DEAL_AMOUNT_RATIO,TURNOVERRATE,FREE_MARKET_CAP,EXPLANATION,D1_CLOSE_ADJCHRATE,D2_CLOSE_ADJCHRATE,D5_CLOSE_ADJCHRATE,D10_CLOSE_ADJCHRATE,SECURITY_TYPE_CODE&source=WEB&client=WEB&filter=(TRADE_DATE=%27" + reportDate + "%27)(TRADE_DATE=%27" + reportDate + "%27)"
-	if wait > 0 {
-		time.Sleep(wait)
+	if c.cfg.Wait > 0 {
+		time.Sleep(c.cfg.Wait)
 	}
 	resp, err := c.client.R().SetContext(ctx).Post(url)
 	if err != nil {
@@ -92,7 +92,7 @@ func (c *Client) Daily(ctx context.Context, reportDate string, wait time.Duratio
 	return out, nil
 }
 
-func (c *Client) Details(ctx context.Context, stockCode string, reportDate string, wait time.Duration) ([]DetailRow, error) {
+func (c *Client) Details(ctx context.Context, stockCode string, reportDate string) ([]DetailRow, error) {
 	if stockCode == "" {
 		return []DetailRow{}, nil
 	}
@@ -105,8 +105,8 @@ func (c *Client) Details(ctx context.Context, stockCode string, reportDate strin
 	}
 	out := make([]DetailRow, 0, 0)
 	for _, url := range urls {
-		if wait > 0 {
-			time.Sleep(wait)
+		if c.cfg.Wait > 0 {
+			time.Sleep(c.cfg.Wait)
 		}
 		resp, err := c.client.R().SetContext(ctx).Post(url)
 		if err != nil {

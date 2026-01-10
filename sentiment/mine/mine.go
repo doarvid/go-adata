@@ -26,12 +26,16 @@ type Config struct {
 	Proxy     string
 	UserAgent string
 	Client    *resty.Client
+	Wait      time.Duration
+	Retries   int
 }
 type Option func(*Config)
 func WithTimeout(d time.Duration) Option { return func(cfg *Config) { cfg.Timeout = d } }
 func WithProxy(p string) Option          { return func(cfg *Config) { cfg.Proxy = p } }
 func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAgent = ua } }
 func WithClient(c *resty.Client) Option  { return func(cfg *Config) { cfg.Client = c } }
+func WithWait(d time.Duration) Option    { return func(cfg *Config) { cfg.Wait = d } }
+func WithRetries(n int) Option           { return func(cfg *Config) { cfg.Retries = n } }
 
 type Client struct {
 	client *resty.Client
@@ -41,6 +45,8 @@ func New(opts ...Option) *Client {
 	cfg := Config{
 		Timeout:   15 * time.Second,
 		UserAgent: "go-adata/mine",
+		Wait:      50 * time.Millisecond,
+		Retries:   2,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -61,13 +67,13 @@ func New(opts ...Option) *Client {
 	return &Client{client: c, cfg: cfg}
 }
 
-func (mc *Client) EvaluateTDX(ctx context.Context, stockCode string, wait time.Duration) ([]Row, error) {
+func (mc *Client) EvaluateTDX(ctx context.Context, stockCode string) ([]Row, error) {
 	if stockCode == "" {
 		return nil, fmt.Errorf("stock code is empty")
 	}
 	url := "http://page3.tdx.com.cn:7615/site/pcwebcall_static/bxb/json/" + stockCode + ".json"
-	if wait > 0 {
-		time.Sleep(wait)
+	if mc.cfg.Wait > 0 {
+		time.Sleep(mc.cfg.Wait)
 	}
 	resp, err := mc.client.R().SetContext(ctx).Get(url)
 	if err != nil {

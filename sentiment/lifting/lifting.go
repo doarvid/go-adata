@@ -27,12 +27,16 @@ type Config struct {
 	Proxy     string
 	UserAgent string
 	Client    *resty.Client
+	Wait      time.Duration
+	Retries   int
 }
 type Option func(*Config)
 func WithTimeout(d time.Duration) Option { return func(cfg *Config) { cfg.Timeout = d } }
 func WithProxy(p string) Option          { return func(cfg *Config) { cfg.Proxy = p } }
 func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAgent = ua } }
 func WithClient(c *resty.Client) Option  { return func(cfg *Config) { cfg.Client = c } }
+func WithWait(d time.Duration) Option    { return func(cfg *Config) { cfg.Wait = d } }
+func WithRetries(n int) Option           { return func(cfg *Config) { cfg.Retries = n } }
 
 type Client struct {
 	client *resty.Client
@@ -42,6 +46,8 @@ func New(opts ...Option) *Client {
 	cfg := Config{
 		Timeout:   15 * time.Second,
 		UserAgent: "go-adata/lifting",
+		Wait:      50 * time.Millisecond,
+		Retries:   2,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -62,10 +68,10 @@ func New(opts ...Option) *Client {
 	return &Client{client: c, cfg: cfg}
 }
 
-func (sl *Client) LastMonth(ctx context.Context, wait time.Duration) ([]Row, error) {
+func (sl *Client) LastMonth(ctx context.Context) ([]Row, error) {
 	out := []Row{}
 	for i := 1; i < 10; i++ {
-		rows, err := sl.lastMonthByPage(ctx, i, wait)
+		rows, err := sl.lastMonthByPage(ctx, i)
 		if err != nil {
 			return []Row{}, err
 		}
@@ -77,13 +83,13 @@ func (sl *Client) LastMonth(ctx context.Context, wait time.Duration) ([]Row, err
 	return out, nil
 }
 
-func (sl *Client) lastMonthByPage(ctx context.Context, pageNum int, wait time.Duration) ([]Row, error) {
+func (sl *Client) lastMonthByPage(ctx context.Context, pageNum int) ([]Row, error) {
 	url := "http://data.10jqka.com.cn/market/xsjj/field/enddate/order/desc/ajax/1/free/1/"
 	if pageNum > 1 {
 		url = url + "page/" + strconv.Itoa(pageNum) + "/free/1/"
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if sl.cfg.Wait > 0 {
+		time.Sleep(sl.cfg.Wait)
 	}
 	headers := header.DefaultHeaders()
 	headers["Host"] = "data.10jqka.com.cn"

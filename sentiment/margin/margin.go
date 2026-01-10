@@ -24,12 +24,16 @@ type Config struct {
 	Proxy     string
 	UserAgent string
 	Client    *resty.Client
+	Wait      time.Duration
+	Retries   int
 }
 type Option func(*Config)
 func WithTimeout(d time.Duration) Option { return func(cfg *Config) { cfg.Timeout = d } }
 func WithProxy(p string) Option          { return func(cfg *Config) { cfg.Proxy = p } }
 func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAgent = ua } }
 func WithClient(c *resty.Client) Option  { return func(cfg *Config) { cfg.Client = c } }
+func WithWait(d time.Duration) Option    { return func(cfg *Config) { cfg.Wait = d } }
+func WithRetries(n int) Option           { return func(cfg *Config) { cfg.Retries = n } }
 
 type Client struct {
 	client *resty.Client
@@ -39,6 +43,8 @@ func New(opts ...Option) *Client {
 	cfg := Config{
 		Timeout:   15 * time.Second,
 		UserAgent: "go-adata/margin",
+		Wait:      50 * time.Millisecond,
+		Retries:   2,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -59,7 +65,7 @@ func New(opts ...Option) *Client {
 	return &Client{client: c, cfg: cfg}
 }
 
-func (m *Client) History(ctx context.Context, startDate string, wait time.Duration) ([]Row, error) {
+func (m *Client) History(ctx context.Context, startDate string) ([]Row, error) {
 	totalPages := 1
 	currPage := 1
 	pageSize := 250
@@ -76,8 +82,8 @@ func (m *Client) History(ctx context.Context, startDate string, wait time.Durati
 	out := make([]Row, 0, 512)
 	for currPage <= totalPages {
 		url := "https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPTA_RZRQ_LSHJ&columns=ALL&source=WEB&sortColumns=dim_date&sortTypes=-1&pageNumber=" + strconv.Itoa(currPage) + "&pageSize=" + strconv.Itoa(pageSize)
-		if wait > 0 {
-			time.Sleep(wait)
+		if m.cfg.Wait > 0 {
+			time.Sleep(m.cfg.Wait)
 		}
 		resp, err := m.client.R().SetContext(ctx).Get(url)
 		if err != nil {
