@@ -7,10 +7,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 )
 
-func (m *Market) GetDailyBaidu(ctx context.Context, stockCode string, startDate string, kType KType, wait time.Duration) ([]DailyBar, error) {
+func (m *Market) GetDailyBaidu(ctx context.Context, stockCode string, startDate string, kType KType) ([]DailyBar, error) {
 	client := m.client
 	url := fmt.Sprintf("https://finance.pae.baidu.com/selfselect/getstockquotation?all=1&isIndex=false&isBk=false&isBlock=false&isFutures=false&isStock=true&newFormat=1&group=quotation_kline_ab&finClientType=pc&code=%s&start_time=%s%%2000:00:00&ktype=%d", stockCode, startDate, int(kType))
 	var res struct {
@@ -86,7 +85,7 @@ func parseF(s string) float64 {
 	return v
 }
 
-func (m *Market) GetMinuteBaidu(ctx context.Context, stockCode string, wait time.Duration) ([]MinuteBar, error) {
+func (m *Market) GetMinuteBaidu(ctx context.Context, stockCode string) ([]MinuteBar, error) {
 	client := m.client
 	url := fmt.Sprintf("https://finance.pae.baidu.com/selfselect/getstockquotation?all=1&isIndex=false&isBk=false&isBlock=false&isFutures=false&isStock=true&newFormat=1&group=quotation_minute_ab&finClientType=pc&code=%s", stockCode)
 	var res struct {
@@ -134,7 +133,7 @@ func (m *Market) GetMinuteBaidu(ctx context.Context, stockCode string, wait time
 	return out, nil
 }
 
-func (m *Market) GetBarBaidu(ctx context.Context, stockCode string, wait time.Duration) ([]TickBar, error) {
+func (m *Market) GetBarBaidu(ctx context.Context, stockCode string) ([]TickBar, error) {
 	client := m.client
 	url := fmt.Sprintf("https://finance.pae.baidu.com/vapi/v1/getquotation?srcid=5353&all=1&pointType=string&group=quotation_minute_ab&query=%s&code=%s&market_type=ab&newFormat=1&finClientType=pc", stockCode, stockCode)
 	var res struct {
@@ -187,7 +186,7 @@ func toInt64(v any) int64 {
 
 func toString(v any) string { return strings.TrimSpace(fmt.Sprintf("%v", v)) }
 
-func (m *Market) GetFiveBaidu(ctx context.Context, stockCode string, wait time.Duration) (Five, error) {
+func (m *Market) GetFiveBaidu(ctx context.Context, stockCode string) (Five, error) {
 	client := m.client
 	url := fmt.Sprintf("https://finance.pae.baidu.com/vapi/v1/getquotation?srcid=5353&all=1&pointType=string&group=quotation_minute_ab&query=%s&code=%s&market_type=ab&newFormat=1&finClientType=pc", stockCode, stockCode)
 	var res struct {

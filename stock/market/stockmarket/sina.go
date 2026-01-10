@@ -19,7 +19,7 @@ type CurrentQuote struct {
 	Amount    float64 `json:"amount"`
 }
 
-func (m *Market) ListCurrentSina(ctx context.Context, codeList []string, wait time.Duration) ([]CurrentQuote, error) {
+func (m *Market) ListCurrentSina(ctx context.Context, codeList []string) ([]CurrentQuote, error) {
 	if len(codeList) == 0 {
 		return []CurrentQuote{}, nil
 	}

@@ -3,7 +3,6 @@ package stockmarket
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/doarvid/go-adata/stock/info/tradecalendar"
 )
@@ -11,9 +10,8 @@ import (
 func TestGetMarketDaily(t *testing.T) {
 	stockCode := "002926"
 	startDate := "2025-11-13"
-	wait := 100 * time.Millisecond
 	m := NewMarket()
-	dailyBars, err := m.GetDaily(stockCode, startDate, tradecalendar.TradeDateNow(), KTypeDay, AdjustTypePre, wait)
+	dailyBars, err := m.GetDaily(stockCode, startDate, tradecalendar.TradeDateNow(), KTypeDay, AdjustTypePre)
 	if err != nil {
 		t.Errorf("GetMarketDaily failed: %v", err)
 	}
@@ -29,8 +27,7 @@ func TestGetMarketDaily(t *testing.T) {
 func TestGetMarketDailyBaidu(t *testing.T) {
 	stockCode := "002926"
 	startDate := "2025-11-13"
-	wait := 100 * time.Millisecond
-	dailyBars, err := NewMarket().GetDailyBaidu(context.Background(), stockCode, startDate, KTypeDay, wait)
+	dailyBars, err := NewMarket().GetDailyBaidu(context.Background(), stockCode, startDate, KTypeDay)
 	if err != nil {
 		t.Skipf("GetMarketDailyBaidu error: %v, skipping", err)
 		return
@@ -49,8 +46,7 @@ func TestGetMarketDailyEast(t *testing.T) {
 	stockCode := "002926"
 	startDate := "2025-11-13"
 	endDate := "2025-11-18"
-	wait := 100 * time.Millisecond
-	dailyBars, err := NewMarket().GetDailyEast(context.Background(), stockCode, startDate, endDate, KTypeDay, 1, wait)
+	dailyBars, err := NewMarket().GetDailyEast(context.Background(), stockCode, startDate, endDate, KTypeDay, 1)
 	if err != nil {
 		t.Errorf("GetMarketDailyEast failed: %v", err)
 	}
@@ -65,8 +61,7 @@ func TestGetMarketDailyEast(t *testing.T) {
 
 func TestGetMarketMinuteEast(t *testing.T) {
 	stockCode := "002926"
-	wait := 100 * time.Millisecond
-	minuteBars, err := NewMarket().GetMinuteEast(context.Background(), stockCode, wait)
+	minuteBars, err := NewMarket().GetMinuteEast(context.Background(), stockCode)
 	if err != nil {
 		t.Errorf("GetMarketMinuteEast failed: %v", err)
 	}
@@ -81,8 +76,7 @@ func TestGetMarketMinuteEast(t *testing.T) {
 
 func TestGetMarketMinuteBaidu(t *testing.T) {
 	stockCode := "002926"
-	wait := 100 * time.Millisecond
-	minuteBars, err := NewMarket().GetMinuteBaidu(context.Background(), stockCode, wait)
+	minuteBars, err := NewMarket().GetMinuteBaidu(context.Background(), stockCode)
 	if err != nil {
 		t.Errorf("GetMarketMinuteBaidu failed: %v", err)
 	}
@@ -97,8 +91,7 @@ func TestGetMarketMinuteBaidu(t *testing.T) {
 
 func TestGetMarketCurrentSina(t *testing.T) {
 	stockCode := "002926"
-	wait := 100 * time.Millisecond
-	currents, err := NewMarket().ListCurrentSina(context.Background(), []string{stockCode}, wait)
+	currents, err := NewMarket().ListCurrentSina(context.Background(), []string{stockCode})
 	if err != nil {
 		t.Errorf("ListMarketCurrentSina failed: %v", err)
 	}
@@ -113,8 +106,7 @@ func TestGetMarketCurrentSina(t *testing.T) {
 
 func TestGetMarketCurrentQQ(t *testing.T) {
 	stockCode := "002926"
-	wait := 100 * time.Millisecond
-	currents, err := NewMarket().ListCurrentQQ(context.Background(), []string{stockCode}, wait)
+	currents, err := NewMarket().ListCurrentQQ(context.Background(), []string{stockCode})
 	if err != nil {
 		t.Errorf("ListMarketCurrentQQ failed: %v", err)
 	}
@@ -129,8 +121,7 @@ func TestGetMarketCurrentQQ(t *testing.T) {
 
 func TestGetMarketFive(t *testing.T) {
 	stockCode := "002926"
-	wait := 100 * time.Millisecond
-	five, err := NewMarket().GetFiveBaidu(context.Background(), stockCode, wait)
+	five, err := NewMarket().GetFiveBaidu(context.Background(), stockCode)
 	if err != nil {
 		t.Skipf("GetMarketFiveBaidu error: %v, skipping", err)
 		return

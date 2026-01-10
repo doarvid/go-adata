@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (m *Market) GetDailyEast(ctx context.Context, stockCode string, startDate string, endDate string, kType KType, adjustType AdjustType, wait time.Duration) ([]DailyBar, error) {
+func (m *Market) GetDailyEast(ctx context.Context, stockCode string, startDate string, endDate string, kType KType, adjustType AdjustType) ([]DailyBar, error) {
 	client := m.client
 	seCid := "0"
 	if strings.HasPrefix(stockCode, "6") {
@@ -80,7 +80,7 @@ func (m *Market) GetDailyEast(ctx context.Context, stockCode string, startDate s
 	return out, nil
 }
 
-func (m *Market) GetMinuteEast(ctx context.Context, stockCode string, wait time.Duration) ([]MinuteBar, error) {
+func (m *Market) GetMinuteEast(ctx context.Context, stockCode string) ([]MinuteBar, error) {
 	client := m.client
 	seCid := "0"
 	if strings.HasPrefix(stockCode, "6") {

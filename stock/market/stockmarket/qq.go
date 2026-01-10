@@ -10,7 +10,7 @@ import (
 	"github.com/doarvid/go-adata/common/codeutils"
 )
 
-func (m *Market) ListCurrentQQ(ctx context.Context, codeList []string, wait time.Duration) ([]CurrentQuote, error) {
+func (m *Market) ListCurrentQQ(ctx context.Context, codeList []string) ([]CurrentQuote, error) {
 	if len(codeList) == 0 {
 		return []CurrentQuote{}, nil
 	}
@@ -54,15 +54,15 @@ func (m *Market) ListCurrentQQ(ctx context.Context, codeList []string, wait time
 	return out, nil
 }
 
-func (m *Market) GetFiveQQ(ctx context.Context, stockCode string, wait time.Duration) (Five, error) {
-	list, err := m.ListFiveQQ(ctx, []string{stockCode}, wait)
+func (m *Market) GetFiveQQ(ctx context.Context, stockCode string) (Five, error) {
+	list, err := m.ListFiveQQ(ctx, []string{stockCode})
 	if err != nil || len(list) == 0 {
 		return Five{}, err
 	}
 	return list[0], nil
 }
 
-func (m *Market) ListFiveQQ(ctx context.Context, codeList []string, wait time.Duration) ([]Five, error) {
+func (m *Market) ListFiveQQ(ctx context.Context, codeList []string) ([]Five, error) {
 	if len(codeList) == 0 {
 		return []Five{}, nil
 	}
@@ -121,7 +121,7 @@ func (m *Market) ListFiveQQ(ctx context.Context, codeList []string, wait time.Du
 	return out, nil
 }
 
-func (m *Market) GetBarQQ(ctx context.Context, stockCode string, wait time.Duration) ([]TickBar, error) {
+func (m *Market) GetBarQQ(ctx context.Context, stockCode string) ([]TickBar, error) {
 	client := m.client
 	ex := strings.ToLower(codeutils.GetExchangeByStockCode(stockCode))
 	code := ex + stockCode
