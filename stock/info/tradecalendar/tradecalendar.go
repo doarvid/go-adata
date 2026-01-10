@@ -54,7 +54,7 @@ func TradeDate(t time.Time) string {
 func TradeDateNow() string {
 	return TradeDate(time.Now())
 }
-func TradeDayN(days int) ([]Day, error) {
+func tradeDayN(days int) ([]Day, error) {
 	years := CalendarYears()
 	var tradeDates []Day
 	for i := 0; i < len(years); i++ {
@@ -75,7 +75,9 @@ func TradeDayN(days int) ([]Day, error) {
 	for i := len(tradeDates) - 1; i > 0; i-- {
 		if tradeDates[i].TradeDate == tradeDate {
 			for j := i; j > 0 && len(ret) < days; j-- {
-				ret = append(ret, tradeDates[j])
+				if tradeDates[j].TradeStatus == 1 {
+					ret = append(ret, tradeDates[j])
+				}
 			}
 			break
 		}
@@ -86,16 +88,14 @@ func TradeDayN(days int) ([]Day, error) {
 	return ret, nil
 }
 
-func AvailTradeDayN(days int) ([]string, error) {
-	tradeDates, err := TradeDayN(days)
+func TradeDayN(days int) ([]string, error) {
+	tradeDates, err := tradeDayN(days)
 	if err != nil {
 		return nil, err
 	}
 	var ret []string
 	for _, tradeDate := range tradeDates {
-		if tradeDate.TradeStatus == 1 {
-			ret = append(ret, tradeDate.TradeDate)
-		}
+		ret = append(ret, tradeDate.TradeDate)
 	}
 	return ret, nil
 }
