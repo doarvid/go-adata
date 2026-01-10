@@ -1,29 +1,29 @@
 package stockmarket
 
 import (
-    "regexp"
-    "strconv"
-    "strings"
-    "time"
+	"context"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
 
-    "github.com/doarvid/go-adata/common/codeutils"
-    httpc "github.com/doarvid/go-adata/common/http"
+	"github.com/doarvid/go-adata/common/codeutils"
 )
 
-func ListMarketCurrentQQ(codeList []string, wait time.Duration) ([]CurrentQuote, error) {
+func (m *Market) ListCurrentQQ(ctx context.Context, codeList []string, wait time.Duration) ([]CurrentQuote, error) {
 	if len(codeList) == 0 {
 		return []CurrentQuote{}, nil
 	}
-	client := httpc.NewClient()
+	client := m.client
 	api := "https://qt.gtimg.cn/q="
 	for _, code := range codeList {
 		ex := strings.ToLower(codeutils.GetExchangeByStockCode(code))
 		api += "s_" + ex + code + ","
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if m.MinWait > 0 {
+		time.Sleep(m.MinWait)
 	}
-	resp, err := client.R().Get(api)
+	resp, err := client.R().SetContext(ctx).Get(api)
 	if err != nil {
 		return nil, err
 	}
@@ -54,28 +54,28 @@ func ListMarketCurrentQQ(codeList []string, wait time.Duration) ([]CurrentQuote,
 	return out, nil
 }
 
-func GetMarketFiveQQ(stockCode string, wait time.Duration) (Five, error) {
-	list, err := ListMarketFiveQQ([]string{stockCode}, wait)
+func (m *Market) GetFiveQQ(ctx context.Context, stockCode string, wait time.Duration) (Five, error) {
+	list, err := m.ListFiveQQ(ctx, []string{stockCode}, wait)
 	if err != nil || len(list) == 0 {
 		return Five{}, err
 	}
 	return list[0], nil
 }
 
-func ListMarketFiveQQ(codeList []string, wait time.Duration) ([]Five, error) {
+func (m *Market) ListFiveQQ(ctx context.Context, codeList []string, wait time.Duration) ([]Five, error) {
 	if len(codeList) == 0 {
 		return []Five{}, nil
 	}
-	client := httpc.NewClient()
+	client := m.client
 	api := "https://web.sqt.gtimg.cn/q="
 	for _, code := range codeList {
 		ex := strings.ToLower(codeutils.GetExchangeByStockCode(code))
 		api += ex + code + ","
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if m.MinWait > 0 {
+		time.Sleep(m.MinWait)
 	}
-	resp, err := client.R().Get(api)
+	resp, err := client.R().SetContext(ctx).Get(api)
 	if err != nil {
 		return nil, err
 	}
@@ -121,12 +121,11 @@ func ListMarketFiveQQ(codeList []string, wait time.Duration) ([]Five, error) {
 	return out, nil
 }
 
-func GetMarketBarQQ(stockCode string, wait time.Duration) ([]TickBar, error) {
-	client := httpc.NewClient()
+func (m *Market) GetBarQQ(ctx context.Context, stockCode string, wait time.Duration) ([]TickBar, error) {
+	client := m.client
 	ex := strings.ToLower(codeutils.GetExchangeByStockCode(stockCode))
 	code := ex + stockCode
 	out := make([]TickBar, 0, 512)
-	// regex to extract quoted payload within brackets
 	re := regexp.MustCompile(`\[\s*\d+\s*,\s*"([^"]+)"`)
 	for page := 0; page < 10000; page++ {
 		params := map[string]string{
@@ -135,10 +134,10 @@ func GetMarketBarQQ(stockCode string, wait time.Duration) ([]TickBar, error) {
 			"c":      code,
 			"p":      strconv.Itoa(page),
 		}
-		if wait > 0 {
-			time.Sleep(wait)
+		if m.MinWait > 0 {
+			time.Sleep(m.MinWait)
 		}
-		resp, err := client.R().SetQueryParams(params).Get("http://stock.gtimg.cn/data/index.php")
+		resp, err := client.R().SetContext(ctx).SetQueryParams(params).Get("http://stock.gtimg.cn/data/index.php")
 		if err != nil {
 			break
 		}

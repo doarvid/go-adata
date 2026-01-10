@@ -14,7 +14,6 @@ import (
 
 	"github.com/doarvid/go-adata/common/codeutils"
 	header "github.com/doarvid/go-adata/common/header"
-	httpc "github.com/doarvid/go-adata/common/http"
 )
 
 //go:embed code.csv
@@ -52,7 +51,7 @@ func AllCode(wait time.Duration) ([]StockCode, error) {
 }
 
 func marketRankEast(wait time.Duration) ([]StockCode, error) {
-	client := httpc.NewClient()
+	client := getHTTPClient()
 	url := "https://82.push2.eastmoney.com/api/qt/clist/get"
 	page := 1
 	pageSize := 50
@@ -74,7 +73,7 @@ func marketRankEast(wait time.Duration) ([]StockCode, error) {
 		if wait > 0 {
 			time.Sleep(wait)
 		}
-		resp, err := client.R().SetQueryParams(params).Get(url)
+	resp, err := client.R().SetQueryParams(params).Get(url)
 		if err != nil {
 			return res, err
 		}
@@ -106,7 +105,7 @@ func marketRankEast(wait time.Duration) ([]StockCode, error) {
 }
 
 func marketRankBaidu(wait time.Duration) ([]StockCode, error) {
-	client := httpc.NewClient()
+	client := getHTTPClient()
 	baseURL := "https://finance.pae.baidu.com/selfselect/getmarketrank"
 	maxPageSize := 200
 	out := make([]StockCode, 0, 5000)
@@ -173,7 +172,7 @@ func marketRankBaidu(wait time.Duration) ([]StockCode, error) {
 }
 
 func marketRankSina(wait time.Duration) ([]StockCode, error) {
-	client := httpc.NewClient()
+	client := getHTTPClient()
 	out := make([]StockCode, 0, 5000)
 	for page := 1; page < 200; page++ {
 		if wait > 0 {
@@ -217,7 +216,7 @@ func marketRankSina(wait time.Duration) ([]StockCode, error) {
 }
 
 func newSubEast(wait time.Duration) ([]StockCode, error) {
-	client := httpc.NewClient()
+	client := getHTTPClient()
 	var res []StockCode
 	for i := 0; i < 200; i++ {
 		url := "https://datacenter-web.eastmoney.com/api/data/v1/get"

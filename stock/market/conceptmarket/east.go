@@ -7,7 +7,6 @@ import (
     "strings"
     "time"
 
-    httpc "github.com/doarvid/go-adata/common/http"
 )
 
 type ConceptDailyBar struct {
@@ -56,7 +55,7 @@ type ConceptCurrent struct {
 
 func GetConceptDailyEast(indexCode string, kType int, wait time.Duration) ([]ConceptDailyBar, error) {
     if indexCode == "" { return []ConceptDailyBar{}, nil }
-    client := httpc.NewClient()
+    client := getHTTPClient()
     params := map[string]string{
         "secid":   "90." + indexCode,
         "fields1": "f1,f2,f3,f4,f5,f6",
@@ -94,7 +93,7 @@ func GetConceptDailyEast(indexCode string, kType int, wait time.Duration) ([]Con
 
 func GetConceptMinuteEast(indexCode string, wait time.Duration) ([]ConceptMinuteBar, error) {
     if indexCode == "" { return []ConceptMinuteBar{}, nil }
-    client := httpc.NewClient()
+    client := getHTTPClient()
     params := map[string]string{
         "fields1": "f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13",
         "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
@@ -132,7 +131,7 @@ func GetConceptMinuteEast(indexCode string, wait time.Duration) ([]ConceptMinute
 
 func GetConceptCurrentEast(indexCode string, wait time.Duration) (ConceptCurrent, error) {
     if indexCode == "" { return ConceptCurrent{}, nil }
-    client := httpc.NewClient()
+    client := getHTTPClient()
     params := map[string]string{
         "secid":  "90." + indexCode,
         "fields": "f57,f58,f106,f59,f43,f46,f60,f44,f45,f47,f48,f49,f113,f114,f115,f117,f85,f50,f119,f120,f121,f122,f135,f136,f137,f138,f139,f140,f141,f142,f143,f144,f145,f146,f147,f148,f149",

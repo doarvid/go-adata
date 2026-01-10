@@ -6,12 +6,11 @@ import (
     "strings"
     "time"
 
-    httpc "github.com/doarvid/go-adata/common/http"
 )
 
 func GetIndexDailyBaidu(indexCode string, startDate string, kType int, wait time.Duration) ([]IndexDailyBar, error) {
     if indexCode == "" { return []IndexDailyBar{}, nil }
-    client := httpc.NewClient()
+    client := getHTTPClient()
     url := fmt.Sprintf("https://finance.pae.baidu.com/vapi/v1/getquotation?srcid=5353&all=1&pointType=string&group=quotation_index_kline&query=%s&code=%s&market_type=ab&newFormat=1&is_kc=0&ktype=day&finClientType=pc", indexCode, indexCode)
     var res struct {
         ResultCode string `json:"ResultCode"`

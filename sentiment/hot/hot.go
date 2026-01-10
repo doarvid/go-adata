@@ -1,50 +1,95 @@
-package sentiment
+package hot
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
-	httpc "github.com/doarvid/go-adata/common/http"
+	"github.com/go-resty/resty/v2"
 )
 
 type PopRankRow struct {
-	Rank      int     `json:"rank"`       // 排名，示例：100
-	StockCode string  `json:"stock_code"` // 股票代码，示例：000799
-	ShortName string  `json:"short_name"` // 股票简称，示例：酒鬼酒
-	Price     float64 `json:"price"`      // 最新价格，示例：88
-	Change    float64 `json:"change"`     // 涨跌额，示例：2
-	ChangePct float64 `json:"change_pct"` // 涨跌幅（%），示例：10.0020
+	Rank      int     `json:"rank"`
+	StockCode string  `json:"stock_code"`
+	ShortName string  `json:"short_name"`
+	Price     float64 `json:"price"`
+	Change    float64 `json:"change"`
+	ChangePct float64 `json:"change_pct"`
 }
 
 type HotRankRow struct {
-	Rank       int     `json:"rank"`        // 排名，示例：100
-	StockCode  string  `json:"stock_code"`  // 股票代码，示例：000799
-	ShortName  string  `json:"short_name"`  // 股票简称，示例：酒鬼酒
-	ChangePct  float64 `json:"change_pct"`  // 涨跌幅（%），示例：10.002
-	HotValue   float64 `json:"hot_value"`   // 热度值，示例：432509.0
-	PopTag     string  `json:"pop_tag"`     // 人气标签，示例：首板涨停
-	ConceptTag string  `json:"concept_tag"` // 概念板块，示例：白酒概念;国企改革
+	Rank       int     `json:"rank"`
+	StockCode  string  `json:"stock_code"`
+	ShortName  string  `json:"short_name"`
+	ChangePct  float64 `json:"change_pct"`
+	HotValue   float64 `json:"hot_value"`
+	PopTag     string  `json:"pop_tag"`
+	ConceptTag string  `json:"concept_tag"`
 }
 
 type HotConceptRow struct {
-	Rank        int     `json:"rank"`         // 排名，示例：1
-	ConceptCode string  `json:"concept_code"` // 概念代码，示例：881157
-	ConceptName string  `json:"concept_name"` // 概念名称，示例：证券
-	ChangePct   float64 `json:"change_pct"`   // 涨跌幅（%），示例：0.2488
-	HotValue    float64 `json:"hot_value"`    // 热度值，示例：1130204.5
-	HotTag      string  `json:"hot_tag"`      // 热度标签，示例：连续351天上榜
+	Rank        int     `json:"rank"`
+	ConceptCode string  `json:"concept_code"`
+	ConceptName string  `json:"concept_name"`
+	ChangePct   float64 `json:"change_pct"`
+	HotValue    float64 `json:"hot_value"`
+	HotTag      string  `json:"hot_tag"`
 }
 
-// 东方财富人气榜100
-// http://guba.eastmoney.com/rank/
-func PopRank100East(wait time.Duration) ([]PopRankRow, error) {
-	client := httpc.NewClient()
+type PlateType string
+
+const (
+	PlateTypeConcept  PlateType = "concept"
+	PlateTypeIndustry PlateType = "industry"
+)
+
+type Config struct {
+	Timeout   time.Duration
+	Proxy     string
+	UserAgent string
+	Client    *resty.Client
+}
+type Option func(*Config)
+func WithTimeout(d time.Duration) Option { return func(cfg *Config) { cfg.Timeout = d } }
+func WithProxy(p string) Option          { return func(cfg *Config) { cfg.Proxy = p } }
+func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAgent = ua } }
+func WithClient(c *resty.Client) Option  { return func(cfg *Config) { cfg.Client = c } }
+
+type Client struct {
+	client *resty.Client
+	cfg    Config
+}
+func New(opts ...Option) *Client {
+	cfg := Config{
+		Timeout:   15 * time.Second,
+		UserAgent: "go-adata/hot",
+	}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var c *resty.Client
+	if cfg.Client != nil {
+		c = cfg.Client
+	} else {
+		c = resty.New()
+		c.SetTimeout(cfg.Timeout)
+		if cfg.UserAgent != "" {
+			c.SetHeader("User-Agent", cfg.UserAgent)
+		}
+		if cfg.Proxy != "" {
+			c.SetProxy(cfg.Proxy)
+		}
+	}
+	return &Client{client: c, cfg: cfg}
+}
+
+func (h *Client) Popular(ctx context.Context, wait time.Duration) ([]PopRankRow, error) {
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-
 	params := map[string]any{
 		"appId":      "appId01",
 		"globalId":   "786e4c21-70dc-435a-93bb-38",
@@ -52,7 +97,7 @@ func PopRank100East(wait time.Duration) ([]PopRankRow, error) {
 		"pageNo":     1,
 		"pageSize":   100,
 	}
-	resp, err := client.R().SetBody(params).Post("https://emappdata.eastmoney.com/stockrank/getAllCurrentList")
+	resp, err := h.client.R().SetContext(ctx).SetBody(params).Post("https://emappdata.eastmoney.com/stockrank/getAllCurrentList")
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +124,7 @@ func PopRank100East(wait time.Duration) ([]PopRankRow, error) {
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp2, err := client.R().Get(url)
+	resp2, err := h.client.R().SetContext(ctx).Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -102,13 +147,12 @@ func PopRank100East(wait time.Duration) ([]PopRankRow, error) {
 	return out, nil
 }
 
-func HotRank100Ths(wait time.Duration) ([]HotRankRow, error) {
-	client := httpc.NewClient()
+func (h *Client) Stocks(ctx context.Context, wait time.Duration) ([]HotRankRow, error) {
 	url := "https://dq.10jqka.com.cn/fuyao/hot_list_data/out/hot_list/v1/stock?stock_type=a&type=hour&list_type=normal"
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp, err := client.R().Get(url)
+	resp, err := h.client.R().SetContext(ctx).Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -149,15 +193,7 @@ func HotRank100Ths(wait time.Duration) ([]HotRankRow, error) {
 	return out, nil
 }
 
-type PlateType string
-
-const (
-	PlateTypeConcept  PlateType = "concept"
-	PlateTypeIndustry PlateType = "industry"
-)
-
-func HotConcept20Ths(plateType PlateType, wait time.Duration) ([]HotConceptRow, error) {
-	client := httpc.NewClient()
+func (h *Client) Concepts(ctx context.Context, plateType PlateType, wait time.Duration) ([]HotConceptRow, error) {
 	if plateType != PlateTypeConcept && plateType != PlateTypeIndustry {
 		return nil, fmt.Errorf("invalid plate type: %s", plateType)
 	}
@@ -166,7 +202,7 @@ func HotConcept20Ths(plateType PlateType, wait time.Duration) ([]HotConceptRow, 
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp, err := client.R().Get(url)
+	resp, err := h.client.R().SetContext(ctx).Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -191,3 +227,13 @@ func HotConcept20Ths(plateType PlateType, wait time.Duration) ([]HotConceptRow, 
 	}
 	return out, nil
 }
+
+func parseF(s string) float64 {
+	s = strings.TrimSpace(strings.ReplaceAll(s, "%", ""))
+	if s == "" || s == "--" {
+		return 0
+	}
+	v, _ := strconv.ParseFloat(s, 64)
+	return v
+}
+func toString(v any) string { return strings.TrimSpace(fmt.Sprintf("%v", v)) }

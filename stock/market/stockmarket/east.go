@@ -1,16 +1,15 @@
 package stockmarket
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
-
-	httpc "github.com/doarvid/go-adata/common/http"
 )
 
-func GetMarketDailyEast(stockCode string, startDate string, endDate string, kType KType, adjustType AdjustType, wait time.Duration) ([]DailyBar, error) {
-	client := httpc.NewClient()
+func (m *Market) GetDailyEast(ctx context.Context, stockCode string, startDate string, endDate string, kType KType, adjustType AdjustType, wait time.Duration) ([]DailyBar, error) {
+	client := m.client
 	seCid := "0"
 	if strings.HasPrefix(stockCode, "6") {
 		seCid = "1"
@@ -38,10 +37,10 @@ func GetMarketDailyEast(stockCode string, startDate string, endDate string, kTyp
 		"end":     end,
 		"_":       "1623766962675",
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if m.MinWait > 0 {
+		time.Sleep(m.MinWait)
 	}
-	resp, err := client.R().SetQueryParams(params).Get("http://push2his.eastmoney.com/api/qt/stock/kline/get")
+	resp, err := client.R().SetContext(ctx).SetQueryParams(params).Get("http://push2his.eastmoney.com/api/qt/stock/kline/get")
 	if err != nil {
 		return nil, err
 	}
@@ -81,8 +80,8 @@ func GetMarketDailyEast(stockCode string, startDate string, endDate string, kTyp
 	return out, nil
 }
 
-func GetMarketMinuteEast(stockCode string, wait time.Duration) ([]MinuteBar, error) {
-	client := httpc.NewClient()
+func (m *Market) GetMinuteEast(ctx context.Context, stockCode string, wait time.Duration) ([]MinuteBar, error) {
+	client := m.client
 	seCid := "0"
 	if strings.HasPrefix(stockCode, "6") {
 		seCid = "1"
@@ -97,10 +96,10 @@ func GetMarketMinuteEast(stockCode string, wait time.Duration) ([]MinuteBar, err
 		"secid":   seCid + "." + stockCode,
 		"_":       "1623766962675",
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if m.MinWait > 0 {
+		time.Sleep(m.MinWait)
 	}
-	resp, err := client.R().SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/stock/trends2/get")
+	resp, err := client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/stock/trends2/get")
 	if err != nil {
 		return nil, err
 	}

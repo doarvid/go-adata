@@ -6,13 +6,12 @@ import (
     "strings"
     "time"
 
-    httpc "github.com/doarvid/go-adata/common/http"
 )
 
 func GetConceptDailyThs(indexCode string, kType int, adjustType int, wait time.Duration) ([]ConceptDailyBar, error) {
     if indexCode == "" { return []ConceptDailyBar{}, nil }
     if !strings.HasPrefix(indexCode, "8") { return []ConceptDailyBar{}, nil }
-    client := httpc.NewClient()
+    client := getHTTPClient()
     url := fmt.Sprintf("http://d.10jqka.com.cn/v6/line/48_%s/%02d%d/last1800.js", indexCode, kType-1, adjustType)
     if wait > 0 { time.Sleep(wait) }
     resp, err := client.R().Get(url)
@@ -49,7 +48,7 @@ func GetConceptDailyThs(indexCode string, kType int, adjustType int, wait time.D
 func GetConceptMinuteThs(indexCode string, wait time.Duration) ([]ConceptMinuteBar, error) {
     if indexCode == "" { return []ConceptMinuteBar{}, nil }
     if !strings.HasPrefix(indexCode, "8") { return []ConceptMinuteBar{}, nil }
-    client := httpc.NewClient()
+    client := getHTTPClient()
     url := fmt.Sprintf("http://d.10jqka.com.cn/v6/time/48_%s/last.js", indexCode)
     if wait > 0 { time.Sleep(wait) }
     resp, err := client.R().Get(url)
@@ -89,7 +88,7 @@ func GetConceptMinuteThs(indexCode string, wait time.Duration) ([]ConceptMinuteB
 func GetConceptCurrentThs(indexCode string, kType int, wait time.Duration) (ConceptCurrent, error) {
     if indexCode == "" { return ConceptCurrent{}, nil }
     if !strings.HasPrefix(indexCode, "8") { return ConceptCurrent{}, nil }
-    client := httpc.NewClient()
+    client := getHTTPClient()
     url := fmt.Sprintf("http://d.10jqka.com.cn/v6/line/48_%s/%02d1/today.js", indexCode, kType-1)
     if wait > 0 { time.Sleep(wait) }
     resp, err := client.R().Get(url)

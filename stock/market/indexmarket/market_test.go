@@ -1,6 +1,7 @@
 package indexmarket
 
 import (
+	"context"
 	"testing"
 	"time"
 )
@@ -8,7 +9,7 @@ import (
 func TestGetIndexFive(t *testing.T) {
 	indexCode := "000001"
 	wait := 100 * time.Millisecond
-	rows, err := GetIndexDailyEast(indexCode, "2025-10-21", 1, wait)
+	rows, err := NewIndexMarket().GetDailyEast(context.Background(), indexCode, "2025-10-21", 1, wait)
 	if err != nil {
 		t.Errorf("GetIndexDailyEast failed: %v", err)
 	}

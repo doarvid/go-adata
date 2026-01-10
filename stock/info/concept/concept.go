@@ -5,13 +5,14 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/go-resty/resty/v2"
 	"io"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/doarvid/go-adata/common/codeutils"
-	httpc "github.com/doarvid/go-adata/common/http"
+	"context"
 )
 
 //go:embed all_concept_code_east.csv
@@ -56,8 +57,16 @@ func LoadAllConceptCodesFromCSV() ([]ConceptCode, error) {
 	return out, nil
 }
 
-func AllConceptCodesEast(wait time.Duration) ([]ConceptCode, error) {
-	client := httpc.NewClient()
+type Concept struct {
+	client *resty.Client
+}
+
+func NewConcept() *Concept {
+	return &Concept{client: getHTTPClient()}
+}
+
+func (c *Concept) AllConceptCodesEast(ctx context.Context, wait time.Duration) ([]ConceptCode, error) {
+	client := c.client
 	page := 1
 	size := 100
 	var out []ConceptCode
@@ -74,7 +83,7 @@ func AllConceptCodesEast(wait time.Duration) ([]ConceptCode, error) {
 		if wait > 0 {
 			time.Sleep(wait)
 		}
-		resp, err := client.R().SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/clist/get")
+		resp, err := client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/clist/get")
 		if err != nil {
 			return out, err
 		}
@@ -113,8 +122,8 @@ func AllConceptCodesEast(wait time.Duration) ([]ConceptCode, error) {
 	return out, nil
 }
 
-func GetConceptEast(stockCode string, wait time.Duration) ([]ConceptInfo, error) {
-	client := httpc.NewClient()
+func (c *Concept) GetConceptEast(ctx context.Context, stockCode string, wait time.Duration) ([]ConceptInfo, error) {
+	client := c.client
 	sc := codeutils.CompileExchangeByStockCode(stockCode)
 	params := map[string]string{
 		"reportName":   "RPT_F10_CORETHEME_BOARDTYPE",
@@ -131,7 +140,7 @@ func GetConceptEast(stockCode string, wait time.Duration) ([]ConceptInfo, error)
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp, err := client.R().SetQueryParams(params).Get("https://datacenter.eastmoney.com/securities/api/data/v1/get")
+	resp, err := client.R().SetContext(ctx).SetQueryParams(params).Get("https://datacenter.eastmoney.com/securities/api/data/v1/get")
 	if err != nil {
 		return nil, err
 	}
@@ -156,8 +165,8 @@ func GetConceptEast(stockCode string, wait time.Duration) ([]ConceptInfo, error)
 	return out, nil
 }
 
-func ConceptConstituentEast(conceptCode string, wait time.Duration) ([]Constituent, error) {
-	client := httpc.NewClient()
+func (c *Concept) ConstituentEast(ctx context.Context, conceptCode string, wait time.Duration) ([]Constituent, error) {
+	client := c.client
 	var out []Constituent
 	page := 1
 	for page < 100 {
@@ -175,7 +184,7 @@ func ConceptConstituentEast(conceptCode string, wait time.Duration) ([]Constitue
 		if wait > 0 {
 			time.Sleep(wait)
 		}
-		resp, err := client.R().SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/clist/get")
+		resp, err := client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/clist/get")
 		if err != nil {
 			return out, err
 		}

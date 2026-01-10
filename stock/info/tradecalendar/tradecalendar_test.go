@@ -7,7 +7,7 @@ import (
 )
 
 func TestTradeCalendarStructureAndRange(t *testing.T) {
-	for year := 2000; year <= 2025; year++ {
+	for year := 2004; year <= 2026; year++ {
 		t.Run(strconv.Itoa(year), func(t *testing.T) {
 			days, err := TradeCalendar(year)
 			if err != nil {

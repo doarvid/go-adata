@@ -1,20 +1,18 @@
 package indexmarket
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
-
-	httpc "github.com/doarvid/go-adata/common/http"
 )
 
-func GetIndexDailyEast(indexCode string, startDate string, kType int, wait time.Duration) ([]IndexDailyBar, error) {
+func (im *IndexMarket) GetDailyEast(ctx context.Context, indexCode string, startDate string, kType int, wait time.Duration) ([]IndexDailyBar, error) {
 	if indexCode == "" {
 		return []IndexDailyBar{}, nil
 	}
-	client := httpc.NewClient()
 	secId := "0"
 	if strings.HasPrefix(indexCode, "93") {
 		secId = "2"
@@ -39,7 +37,7 @@ func GetIndexDailyEast(indexCode string, startDate string, kType int, wait time.
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp, err := client.R().SetQueryParams(params).Get("https://push2his.eastmoney.com/api/qt/stock/kline/get")
+	resp, err := im.client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2his.eastmoney.com/api/qt/stock/kline/get")
 	if err != nil {
 		return nil, err
 	}
@@ -82,11 +80,10 @@ func GetIndexDailyEast(indexCode string, startDate string, kType int, wait time.
 	return out, nil
 }
 
-func GetIndexMinuteEast(indexCode string, wait time.Duration) ([]IndexMinuteBar, error) {
+func (im *IndexMarket) GetMinuteEast(ctx context.Context, indexCode string, wait time.Duration) ([]IndexMinuteBar, error) {
 	if indexCode == "" {
 		return []IndexMinuteBar{}, nil
 	}
-	client := httpc.NewClient()
 	secId := "0"
 	if strings.HasPrefix(indexCode, "93") {
 		secId = "2"
@@ -103,7 +100,7 @@ func GetIndexMinuteEast(indexCode string, wait time.Duration) ([]IndexMinuteBar,
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp, err := client.R().SetQueryParams(params).Get("https://push2his.eastmoney.com/api/qt/stock/trends2/get")
+	resp, err := im.client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2his.eastmoney.com/api/qt/stock/trends2/get")
 	if err != nil {
 		return nil, err
 	}
@@ -146,11 +143,10 @@ func GetIndexMinuteEast(indexCode string, wait time.Duration) ([]IndexMinuteBar,
 	return out, nil
 }
 
-func GetIndexCurrentEast(indexCode string, wait time.Duration) (IndexCurrent, error) {
+func (im *IndexMarket) GetCurrentEast(ctx context.Context, indexCode string, wait time.Duration) (IndexCurrent, error) {
 	if indexCode == "" {
 		return IndexCurrent{}, nil
 	}
-	client := httpc.NewClient()
 	secId := "0"
 	if strings.HasPrefix(indexCode, "93") {
 		secId = "2"
@@ -169,7 +165,7 @@ func GetIndexCurrentEast(indexCode string, wait time.Duration) (IndexCurrent, er
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp, err := client.R().SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/stock/get")
+	resp, err := im.client.R().SetContext(ctx).SetQueryParams(params).Get("https://push2.eastmoney.com/api/qt/stock/get")
 	if err != nil {
 		return IndexCurrent{}, err
 	}

@@ -1,6 +1,9 @@
 package indexmarket
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type IndexDailyBar struct {
 	TradeTime     string  `json:"trade_time"`
@@ -65,7 +68,7 @@ func (m *Market) GetDaily(indexCode, startDate string, kType int, wait time.Dura
 	var east []IndexDailyBar
 	var err error
 	for i := 0; i <= m.Retries; i++ {
-		east, err = GetIndexDailyEast(indexCode, startDate, kType, wait)
+		east, err = NewIndexMarket().GetDailyEast(context.Background(), indexCode, startDate, kType, wait)
 		if err == nil && len(east) > 0 {
 			return NormalizeIndexDaily(east), nil
 		}
@@ -83,7 +86,7 @@ func (m *Market) GetDaily(indexCode, startDate string, kType int, wait time.Dura
 	var ths []IndexDailyBar
 	var err3 error
 	for i := 0; i <= m.Retries; i++ {
-		ths, err3 = GetIndexDailyThs(indexCode, startDate, kType, wait)
+		ths, err3 = NewIndexMarket().GetDailyThs(context.Background(), indexCode, startDate, kType, wait)
 		if err3 == nil && len(ths) > 0 {
 			return NormalizeIndexDaily(ths), nil
 		}
@@ -108,7 +111,7 @@ func (m *Market) GetMinute(indexCode string, wait time.Duration) ([]IndexMinuteB
 	var east []IndexMinuteBar
 	var err error
 	for i := 0; i <= m.Retries; i++ {
-		east, err = GetIndexMinuteEast(indexCode, wait)
+		east, err = NewIndexMarket().GetMinuteEast(context.Background(), indexCode, wait)
 		if err == nil && len(east) > 0 {
 			return NormalizeIndexMinute(east), nil
 		}
@@ -117,7 +120,7 @@ func (m *Market) GetMinute(indexCode string, wait time.Duration) ([]IndexMinuteB
 	var ths []IndexMinuteBar
 	var err2 error
 	for i := 0; i <= m.Retries; i++ {
-		ths, err2 = GetIndexMinuteThs(indexCode, wait)
+		ths, err2 = NewIndexMarket().GetMinuteThs(context.Background(), indexCode, wait)
 		if err2 == nil && len(ths) > 0 {
 			return NormalizeIndexMinute(ths), nil
 		}
@@ -139,7 +142,7 @@ func (m *Market) GetCurrent(indexCode string, wait time.Duration) (IndexCurrent,
 	var cur IndexCurrent
 	var err error
 	for i := 0; i <= m.Retries; i++ {
-		cur, err = GetIndexCurrentEast(indexCode, wait)
+		cur, err = NewIndexMarket().GetCurrentEast(context.Background(), indexCode, wait)
 		if cur.IndexCode != "" {
 			return NormalizeIndexCurrent(cur), nil
 		}
@@ -148,7 +151,7 @@ func (m *Market) GetCurrent(indexCode string, wait time.Duration) (IndexCurrent,
 	var ths IndexCurrent
 	var err2 error
 	for i := 0; i <= m.Retries; i++ {
-		ths, err2 = GetIndexCurrentThs(indexCode, wait)
+		ths, err2 = NewIndexMarket().GetCurrentThs(context.Background(), indexCode, wait)
 		if ths.IndexCode != "" {
 			return NormalizeIndexCurrent(ths), nil
 		}
@@ -157,7 +160,7 @@ func (m *Market) GetCurrent(indexCode string, wait time.Duration) (IndexCurrent,
 	var mins []IndexMinuteBar
 	var merr error
 	for i := 0; i <= m.Retries; i++ {
-		mins, merr = GetIndexMinuteEast(indexCode, wait)
+		mins, merr = NewIndexMarket().GetMinuteEast(context.Background(), indexCode, wait)
 		if merr == nil && len(mins) > 0 {
 			break
 		}

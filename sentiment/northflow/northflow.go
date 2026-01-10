@@ -1,60 +1,83 @@
-package sentiment
+package northflow
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
-	httpc "github.com/doarvid/go-adata/common/http"
 	"github.com/doarvid/go-adata/stock/info/tradecalendar"
+	"github.com/go-resty/resty/v2"
 )
 
-type NorthFlowDaily struct {
-	// 交易时间，格式如 2023-06-01
-	TradeDate string `json:"trade_date"`
-	// 沪港通净买入金额（元），买入和卖出合计，示例：405050400
-	NetHgt float64 `json:"net_hgt"`
-	// 沪港通买入金额（元）
-	BuyHgt float64 `json:"buy_hgt"`
-	// 沪港通卖出金额（元）
-	SellHgt float64 `json:"sell_hgt"`
-	// 深港通净买入金额（元），买入和卖出合计，示例：151704400
-	NetSgt float64 `json:"net_sgt"`
-	// 深港通买入金额（元）
-	BuySgt float64 `json:"buy_sgt"`
-	// 深港通卖出金额（元）
-	SellSgt float64 `json:"sell_sgt"`
-	// 北向净买入金额（元），沪港通和深港通合计，示例：556754800
-	NetTgt float64 `json:"net_tgt"`
-	// 北向买入金额（元）
-	BuyTgt float64 `json:"buy_tgt"`
-	// 北向卖出金额（元）
-	SellTgt float64 `json:"sell_tgt"`
+type Daily struct {
+	TradeDate string  `json:"trade_date"`
+	NetHgt    float64 `json:"net_hgt"`
+	BuyHgt    float64 `json:"buy_hgt"`
+	SellHgt   float64 `json:"sell_hgt"`
+	NetSgt    float64 `json:"net_sgt"`
+	BuySgt    float64 `json:"buy_sgt"`
+	SellSgt   float64 `json:"sell_sgt"`
+	NetTgt    float64 `json:"net_tgt"`
+	BuyTgt    float64 `json:"buy_tgt"`
+	SellTgt   float64 `json:"sell_tgt"`
 }
 
-type NorthFlowMinute struct {
-	// 交易时间，格式如 2023-06-01 09:30:00
-	TradeTime string `json:"trade_time"`
-	// 沪港通净买入金额（元），示例：405050400
-	NetHgt float64 `json:"net_hgt"`
-	// 深港通净买入金额（元），示例：151704400
-	NetSgt float64 `json:"net_sgt"`
-	// 北向净买入金额（元），沪港通和深港通合计，示例：556754800
-	NetTgt float64 `json:"net_tgt"`
+type Minute struct {
+	TradeTime string  `json:"trade_time"`
+	NetHgt    float64 `json:"net_hgt"`
+	NetSgt    float64 `json:"net_sgt"`
+	NetTgt    float64 `json:"net_tgt"`
 }
 
-// 获取北向的历史流入行情
-// startDate 开始日期，格式为"2006-01-02"
-// wait 等待时间，单位为秒
-func NorthFlow(startDate string, wait time.Duration) ([]NorthFlowDaily, error) {
-	return northFlowEast(startDate, wait)
+type Config struct {
+	Timeout   time.Duration
+	Proxy     string
+	UserAgent string
+	Client    *resty.Client
+}
+type Option func(*Config)
+
+func WithTimeout(d time.Duration) Option { return func(cfg *Config) { cfg.Timeout = d } }
+func WithProxy(p string) Option          { return func(cfg *Config) { cfg.Proxy = p } }
+func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAgent = ua } }
+func WithClient(c *resty.Client) Option  { return func(cfg *Config) { cfg.Client = c } }
+
+type Client struct {
+	client *resty.Client
+	cfg    Config
 }
 
-func northFlowEast(startDate string, wait time.Duration) ([]NorthFlowDaily, error) {
-	client := httpc.NewClient()
+func New(opts ...Option) *Client {
+	cfg := Config{
+		Timeout:   15 * time.Second,
+		UserAgent: "go-adata/northflow",
+	}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var c *resty.Client
+	if cfg.Client != nil {
+		c = cfg.Client
+	} else {
+		c = resty.New()
+		c.SetTimeout(cfg.Timeout)
+		if cfg.UserAgent != "" {
+			c.SetHeader("User-Agent", cfg.UserAgent)
+		}
+		if cfg.Proxy != "" {
+			c.SetProxy(cfg.Proxy)
+		}
+	}
+	return &Client{client: c, cfg: cfg}
+}
+
+func (c *Client) History(ctx context.Context, startDate string, wait time.Duration) ([]Daily, error) {
 	currPage := 1
-	out := make([]NorthFlowDaily, 0, 1024)
+	out := make([]Daily, 0, 1024)
 	var start time.Time
 	var hasStart bool
 	if startDate != "" {
@@ -75,20 +98,20 @@ func northFlowEast(startDate string, wait time.Duration) ([]NorthFlowDaily, erro
 		if wait > 0 {
 			time.Sleep(wait)
 		}
-		resp1, err1 := client.R().Get(sgtURL)
+		resp1, err1 := c.client.R().SetContext(ctx).Get(sgtURL)
 		if err1 != nil {
 			break
 		}
-		resp2, err2 := client.R().Get(hgtURL)
+		resp2, err2 := c.client.R().SetContext(ctx).Get(hgtURL)
 		if err2 != nil {
 			break
 		}
 		buf1 := new(strings.Builder)
 		buf2 := new(strings.Builder)
-		if _, err := ioCopy(buf1, strings.NewReader(resp1.String())); err != nil {
+		if _, err := io.Copy(buf1, strings.NewReader(resp1.String())); err != nil {
 			break
 		}
-		if _, err := ioCopy(buf2, strings.NewReader(resp2.String())); err != nil {
+		if _, err := io.Copy(buf2, strings.NewReader(resp2.String())); err != nil {
 			break
 		}
 		sgtText := strings.ReplaceAll(buf1.String(), "null", "0")
@@ -136,7 +159,7 @@ func northFlowEast(startDate string, wait time.Duration) ([]NorthFlowDaily, erro
 			ns := parseF(toString(sgtData[i]["NET_DEAL_AMT"])) * 1000000
 			bs := parseF(toString(sgtData[i]["BUY_AMT"])) * 1000000
 			ss := parseF(toString(sgtData[i]["SELL_AMT"])) * 1000000
-			out = append(out, NorthFlowDaily{
+			out = append(out, Daily{
 				TradeDate: dt.Format("2006-01-02"),
 				NetHgt:    nh, BuyHgt: bh, SellHgt: sh,
 				NetSgt: ns, BuySgt: bs, SellSgt: ss,
@@ -151,30 +174,29 @@ func northFlowEast(startDate string, wait time.Duration) ([]NorthFlowDaily, erro
 	return out, nil
 }
 
-func NorthFlowMin(wait time.Duration) ([]NorthFlowMinute, error) {
-	r, _ := northFlowMinEast(wait)
+func (c *Client) Minute(ctx context.Context, wait time.Duration) ([]Minute, error) {
+	r, _ := c.minuteEast(ctx, wait)
 	if len(r) == 0 {
-		r, _ = northFlowMinThs(wait)
+		r, _ = c.minuteThs(ctx, wait)
 	}
 	return r, nil
 }
 
-func NorthFlowCurrent(wait time.Duration) (NorthFlowMinute, error) {
-	mins, _ := NorthFlowMin(wait)
+func (c *Client) Current(ctx context.Context, wait time.Duration) (Minute, error) {
+	mins, _ := c.Minute(ctx, wait)
 	if len(mins) == 0 {
-		return NorthFlowMinute{}, nil
+		return Minute{}, nil
 	}
 	return mins[len(mins)-1], nil
 }
 
-func northFlowMinThs(wait time.Duration) ([]NorthFlowMinute, error) {
-	client := httpc.NewClient()
+func (c *Client) minuteThs(ctx context.Context, wait time.Duration) ([]Minute, error) {
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp, err := client.R().Get("https://data.hexin.cn/market/hsgtApi/method/dayChart/")
+	resp, err := c.client.R().SetContext(ctx).Get("https://data.hexin.cn/market/hsgtApi/method/dayChart/")
 	if err != nil {
-		return []NorthFlowMinute{}, nil
+		return []Minute{}, nil
 	}
 	var res struct {
 		Time []string  `json:"time"`
@@ -182,7 +204,7 @@ func northFlowMinThs(wait time.Duration) ([]NorthFlowMinute, error) {
 		Sgt  []float64 `json:"sgt"`
 	}
 	if err := json.Unmarshal(resp.Body(), &res); err != nil {
-		return []NorthFlowMinute{}, nil
+		return []Minute{}, nil
 	}
 	now := time.Now()
 	yrs := tradecalendar.CalendarYears()
@@ -204,32 +226,31 @@ func northFlowMinThs(wait time.Duration) ([]NorthFlowMinute, error) {
 			}
 		}
 	}
-	out := make([]NorthFlowMinute, 0, len(res.Time))
+	out := make([]Minute, 0, len(res.Time))
 	for i := range res.Time {
 		tr := latest + " " + res.Time[i]
-		out = append(out, NorthFlowMinute{TradeTime: tr, NetHgt: float64(int64(res.Hgt[i] * 100000000)), NetSgt: float64(int64(res.Sgt[i] * 100000000)), NetTgt: float64(int64((res.Hgt[i] + res.Sgt[i]) * 100000000))})
+		out = append(out, Minute{TradeTime: tr, NetHgt: float64(int64(res.Hgt[i] * 100000000)), NetSgt: float64(int64(res.Sgt[i] * 100000000)), NetTgt: float64(int64((res.Hgt[i] + res.Sgt[i]) * 100000000))})
 	}
 	return out, nil
 }
 
-func northFlowMinEast(wait time.Duration) ([]NorthFlowMinute, error) {
-	client := httpc.NewClient()
+func (c *Client) minuteEast(ctx context.Context, wait time.Duration) ([]Minute, error) {
 	url := "https://push2.eastmoney.com/api/qt/kamt.rtmin/get?fields1=f1,f3&fields2=f51,f52,f54,f56&ut=b2884a393a59ad64002292a3e90d46a5"
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp, err := client.R().Get(url)
+	resp, err := c.client.R().SetContext(ctx).Get(url)
 	if err != nil {
-		return []NorthFlowMinute{}, nil
+		return []Minute{}, nil
 	}
 	buf := new(strings.Builder)
 	if _, err := io.Copy(buf, strings.NewReader(resp.String())); err != nil {
-		return []NorthFlowMinute{}, nil
+		return []Minute{}, nil
 	}
 	text := buf.String()
 	l := strings.Index(text, "{")
 	if l < 0 {
-		return []NorthFlowMinute{}, nil
+		return []Minute{}, nil
 	}
 	var res struct {
 		Data struct {
@@ -238,10 +259,10 @@ func northFlowMinEast(wait time.Duration) ([]NorthFlowMinute, error) {
 		} `json:"data"`
 	}
 	if err := json.Unmarshal([]byte(text[l:len(text)-2]), &res); err != nil {
-		return []NorthFlowMinute{}, nil
+		return []Minute{}, nil
 	}
 	y := time.Now().Format("2006")
-	out := make([]NorthFlowMinute, 0, len(res.Data.S2n))
+	out := make([]Minute, 0, len(res.Data.S2n))
 	for _, row := range res.Data.S2n {
 		cols := strings.Split(row, ",")
 		if len(cols) < 4 {
@@ -250,7 +271,17 @@ func northFlowMinEast(wait time.Duration) ([]NorthFlowMinute, error) {
 		if cols[1] == "-" {
 			continue
 		}
-		out = append(out, NorthFlowMinute{TradeTime: y + "-" + res.Data.S2nDate + " " + cols[0], NetHgt: float64(int64(parseF(cols[1]) * 10000)), NetSgt: float64(int64(parseF(cols[2]) * 10000)), NetTgt: float64(int64(parseF(cols[3]) * 10000))})
+		out = append(out, Minute{TradeTime: y + "-" + res.Data.S2nDate + " " + cols[0], NetHgt: float64(int64(parseF(cols[1]) * 10000)), NetSgt: float64(int64(parseF(cols[2]) * 10000)), NetTgt: float64(int64(parseF(cols[3]) * 10000))})
 	}
 	return out, nil
 }
+
+func parseF(s string) float64 {
+	s = strings.TrimSpace(strings.ReplaceAll(s, "%", ""))
+	if s == "" || s == "--" {
+		return 0
+	}
+	v, _ := strconv.ParseFloat(s, 64)
+	return v
+}
+func toString(v any) string { return strings.TrimSpace(fmt.Sprintf("%v", v)) }

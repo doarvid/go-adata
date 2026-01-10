@@ -1,17 +1,17 @@
 package stockmarket
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	httpc "github.com/doarvid/go-adata/common/http"
 )
 
-func GetMarketDailyBaidu(stockCode string, startDate string, kType KType, wait time.Duration) ([]DailyBar, error) {
-	client := httpc.NewClient()
+func (m *Market) GetDailyBaidu(ctx context.Context, stockCode string, startDate string, kType KType, wait time.Duration) ([]DailyBar, error) {
+	client := m.client
 	url := fmt.Sprintf("https://finance.pae.baidu.com/selfselect/getstockquotation?all=1&isIndex=false&isBk=false&isBlock=false&isFutures=false&isStock=true&newFormat=1&group=quotation_kline_ab&finClientType=pc&code=%s&start_time=%s%%2000:00:00&ktype=%d", stockCode, startDate, int(kType))
 	var res struct {
 		ResultCode string `json:"ResultCode"`
@@ -24,10 +24,10 @@ func GetMarketDailyBaidu(stockCode string, startDate string, kType KType, wait t
 	}
 	// retry
 	for i := 0; i < 3; i++ {
-		if wait > 0 {
-			time.Sleep(wait)
+		if m.MinWait > 0 {
+			time.Sleep(m.MinWait)
 		}
-		resp, err := client.R().Get(url)
+		resp, err := client.R().SetContext(ctx).Get(url)
 		if err != nil {
 			return nil, err
 		}
@@ -86,8 +86,8 @@ func parseF(s string) float64 {
 	return v
 }
 
-func GetMarketMinuteBaidu(stockCode string, wait time.Duration) ([]MinuteBar, error) {
-	client := httpc.NewClient()
+func (m *Market) GetMinuteBaidu(ctx context.Context, stockCode string, wait time.Duration) ([]MinuteBar, error) {
+	client := m.client
 	url := fmt.Sprintf("https://finance.pae.baidu.com/selfselect/getstockquotation?all=1&isIndex=false&isBk=false&isBlock=false&isFutures=false&isStock=true&newFormat=1&group=quotation_minute_ab&finClientType=pc&code=%s", stockCode)
 	var res struct {
 		ResultCode string `json:"ResultCode"`
@@ -96,10 +96,10 @@ func GetMarketMinuteBaidu(stockCode string, wait time.Duration) ([]MinuteBar, er
 		} `json:"Result"`
 	}
 	for i := 0; i < 3; i++ {
-		if wait > 0 {
-			time.Sleep(wait)
+		if m.MinWait > 0 {
+			time.Sleep(m.MinWait)
 		}
-		resp, err := client.R().Get(url)
+		resp, err := client.R().SetContext(ctx).Get(url)
 		if err != nil {
 			return nil, err
 		}
@@ -134,8 +134,8 @@ func GetMarketMinuteBaidu(stockCode string, wait time.Duration) ([]MinuteBar, er
 	return out, nil
 }
 
-func GetMarketBarBaidu(stockCode string, wait time.Duration) ([]TickBar, error) {
-	client := httpc.NewClient()
+func (m *Market) GetBarBaidu(ctx context.Context, stockCode string, wait time.Duration) ([]TickBar, error) {
+	client := m.client
 	url := fmt.Sprintf("https://finance.pae.baidu.com/vapi/v1/getquotation?srcid=5353&all=1&pointType=string&group=quotation_minute_ab&query=%s&code=%s&market_type=ab&newFormat=1&finClientType=pc", stockCode, stockCode)
 	var res struct {
 		ResultCode string `json:"ResultCode"`
@@ -144,10 +144,10 @@ func GetMarketBarBaidu(stockCode string, wait time.Duration) ([]TickBar, error) 
 		} `json:"Result"`
 	}
 	for i := 0; i < 3; i++ {
-		if wait > 0 {
-			time.Sleep(wait)
+		if m.MinWait > 0 {
+			time.Sleep(m.MinWait)
 		}
-		resp, err := client.R().Get(url)
+		resp, err := client.R().SetContext(ctx).Get(url)
 		if err != nil {
 			return nil, err
 		}
@@ -187,8 +187,8 @@ func toInt64(v any) int64 {
 
 func toString(v any) string { return strings.TrimSpace(fmt.Sprintf("%v", v)) }
 
-func GetMarketFiveBaidu(stockCode string, wait time.Duration) (Five, error) {
-	client := httpc.NewClient()
+func (m *Market) GetFiveBaidu(ctx context.Context, stockCode string, wait time.Duration) (Five, error) {
+	client := m.client
 	url := fmt.Sprintf("https://finance.pae.baidu.com/vapi/v1/getquotation?srcid=5353&all=1&pointType=string&group=quotation_minute_ab&query=%s&code=%s&market_type=ab&newFormat=1&finClientType=pc", stockCode, stockCode)
 	var res struct {
 		Result struct {
@@ -199,10 +199,10 @@ func GetMarketFiveBaidu(stockCode string, wait time.Duration) (Five, error) {
 			} `json:"basicinfos"`
 		} `json:"Result"`
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if m.MinWait > 0 {
+		time.Sleep(m.MinWait)
 	}
-	resp, err := client.R().Get(url)
+	resp, err := client.R().SetContext(ctx).Get(url)
 	if err != nil {
 		return Five{}, err
 	}

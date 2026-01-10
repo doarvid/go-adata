@@ -1,9 +1,13 @@
-package sentiment
+package mine
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestMineClearanceTDX(t *testing.T) {
-	rows, err := MineClearanceTDX("600811", 0)
+	mc := New()
+	rows, err := mc.EvaluateTDX(context.Background(), "600811", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -14,3 +18,4 @@ func TestMineClearanceTDX(t *testing.T) {
 		t.Logf("%+v\n", row)
 	}
 }
+

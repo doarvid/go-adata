@@ -6,7 +6,6 @@ import (
     "strings"
     "time"
 
-    httpc "github.com/doarvid/go-adata/common/http"
 )
 
 type FlowMin struct {
@@ -33,7 +32,7 @@ func GetStockCapitalFlowMinEast(stockCode string, wait time.Duration) ([]FlowMin
 	if stockCode == "" {
 		return []FlowMin{}, nil
 	}
-	client := httpc.NewClient()
+	client := getHTTPClient()
 	cid := "0"
 	if strings.HasPrefix(stockCode, "6") {
 		cid = "1"
@@ -85,7 +84,7 @@ func GetStockCapitalFlowEast(stockCode string, startDate string, endDate string,
 	if stockCode == "" {
 		return []FlowDaily{}, nil
 	}
-	client := httpc.NewClient()
+	client := getHTTPClient()
 	cid := "0"
 	if strings.HasPrefix(stockCode, "6") {
 		cid = "1"

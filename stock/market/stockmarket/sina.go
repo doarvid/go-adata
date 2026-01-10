@@ -1,11 +1,11 @@
 package stockmarket
 
 import (
+	"context"
 	"strings"
 	"time"
 
 	"github.com/doarvid/go-adata/common/codeutils"
-	httpc "github.com/doarvid/go-adata/common/http"
 	"github.com/doarvid/go-adata/common/utils"
 )
 
@@ -19,21 +19,21 @@ type CurrentQuote struct {
 	Amount    float64 `json:"amount"`
 }
 
-func ListMarketCurrentSina(codeList []string, wait time.Duration) ([]CurrentQuote, error) {
+func (m *Market) ListCurrentSina(ctx context.Context, codeList []string, wait time.Duration) ([]CurrentQuote, error) {
 	if len(codeList) == 0 {
 		return []CurrentQuote{}, nil
 	}
-	client := httpc.NewClient()
+	client := m.client
 	api := "https://hq.sinajs.cn/list="
 	for _, code := range codeList {
 		ex := strings.ToLower(codeutils.GetExchangeByStockCode(code))
 		api += "s_" + ex + code + ","
 	}
-	if wait > 0 {
-		time.Sleep(wait)
+	if m.MinWait > 0 {
+		time.Sleep(m.MinWait)
 	}
 	headers := map[string]string{"Referer": "https://finance.sina.com.cn/", "User-Agent": "Mozilla/5.0"}
-	resp, err := client.R().SetHeaders(headers).Get(api)
+	resp, err := client.R().SetContext(ctx).SetHeaders(headers).Get(api)
 	if err != nil {
 		return nil, err
 	}

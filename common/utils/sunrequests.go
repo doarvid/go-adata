@@ -4,7 +4,6 @@ import (
     "strings"
     "time"
 
-    httpc "github.com/doarvid/go-adata/common/http"
     "github.com/go-resty/resty/v2"
 )
 
@@ -23,7 +22,7 @@ func NewSunRequests(p SunProxy) *SunRequests { return &SunRequests{proxy: p} }
 func (s *SunRequests) Request(method, url string, times int, retryWaitTimeMs int, proxies map[string]string, waitTimeMs int, setup func(*resty.Request)) (*resty.Response, error) {
     if times <= 0 { times = 1 }
     if retryWaitTimeMs <= 0 { retryWaitTimeMs = 1588 }
-    client := httpc.NewClient()
+    client := resty.New()
     isProxy := strings.ToLower(s.proxy.Get("is_proxy")) == "true"
     ip := s.proxy.Get("ip")
     proxyURL := s.proxy.Get("proxy_url")
@@ -55,4 +54,3 @@ func (s *SunRequests) Request(method, url string, times int, retryWaitTimeMs int
 }
 
 var SunRequestsClient = NewSunRequests(SunProxy{})
-

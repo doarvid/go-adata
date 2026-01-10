@@ -1,6 +1,11 @@
 package stockmarket
 
-import "time"
+import (
+	"context"
+	"time"
+
+	"github.com/go-resty/resty/v2"
+)
 
 type KType int
 
@@ -27,7 +32,8 @@ type Market struct {
 	MinWait time.Duration
 	Retries int
 
-	proxy string
+	proxy  string
+	client *resty.Client
 }
 
 type DailyBar struct {
@@ -125,6 +131,13 @@ func NewMarket(opts ...MarketOpt) *Market {
 	for _, opt := range opts {
 		opt(m)
 	}
+	c := resty.New()
+	c.SetTimeout(15 * time.Second)
+	c.SetHeader("User-Agent", "go-adata/stockmarket")
+	if m.proxy != "" {
+		c.SetProxy(m.proxy)
+	}
+	m.client = c
 	return m
 }
 
@@ -132,26 +145,24 @@ func (m *Market) GetDaily(stockCode, startDate, endDate string, kType KType, adj
 	if stockCode == "" {
 		return []DailyBar{}, nil
 	}
-	if wait < m.MinWait {
-		wait = m.MinWait
-	}
+	wait = m.MinWait
 	var east []DailyBar
 	var err error
 	for i := 0; i <= m.Retries; i++ {
-		east, err = GetMarketDailyEast(stockCode, startDate, endDate, kType, adjustType, wait)
+		east, err = m.GetDailyEast(context.Background(), stockCode, startDate, endDate, kType, adjustType, wait)
 		if err == nil && len(east) > 0 {
 			return NormalizeDaily(east), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	var bd []DailyBar
 	var err2 error
 	for i := 0; i <= m.Retries; i++ {
-		bd, err2 = GetMarketDailyBaidu(stockCode, startDate, kType, wait)
+		bd, err2 = m.GetDailyBaidu(context.Background(), stockCode, startDate, kType, wait)
 		if err2 == nil && len(bd) > 0 {
 			return NormalizeDaily(bd), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	if len(bd) > 0 {
 		return NormalizeDaily(bd), err
@@ -163,26 +174,24 @@ func (m *Market) GetMinute(stockCode string, wait time.Duration) ([]MinuteBar, e
 	if stockCode == "" {
 		return []MinuteBar{}, nil
 	}
-	if wait < m.MinWait {
-		wait = m.MinWait
-	}
+	wait = m.MinWait
 	var east []MinuteBar
 	var err error
 	for i := 0; i <= m.Retries; i++ {
-		east, err = GetMarketMinuteEast(stockCode, wait)
+		east, err = m.GetMinuteEast(context.Background(), stockCode, wait)
 		if err == nil && len(east) > 0 {
 			return NormalizeMinute(east), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	var bd []MinuteBar
 	var err2 error
 	for i := 0; i <= m.Retries; i++ {
-		bd, err2 = GetMarketMinuteBaidu(stockCode, wait)
+		bd, err2 = m.GetMinuteBaidu(context.Background(), stockCode, wait)
 		if err2 == nil && len(bd) > 0 {
 			return NormalizeMinute(bd), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	if len(bd) > 0 {
 		return NormalizeMinute(bd), err
@@ -194,26 +203,24 @@ func (m *Market) GetBar(stockCode string, wait time.Duration) ([]TickBar, error)
 	if stockCode == "" {
 		return []TickBar{}, nil
 	}
-	if wait < m.MinWait {
-		wait = m.MinWait
-	}
+	wait = m.MinWait
 	var bd []TickBar
 	var err error
 	for i := 0; i <= m.Retries; i++ {
-		bd, err = GetMarketBarBaidu(stockCode, wait)
+		bd, err := m.GetBarBaidu(context.Background(), stockCode, wait)
 		if err == nil && len(bd) > 0 {
 			return NormalizeTick(bd), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	var qq []TickBar
 	var err2 error
 	for i := 0; i <= m.Retries; i++ {
-		qq, err2 = GetMarketBarQQ(stockCode, wait)
+		qq, err2 = m.GetBarQQ(context.Background(), stockCode, wait)
 		if err2 == nil && len(qq) > 0 {
 			return NormalizeTick(qq), nil
 		}
-		time.Sleep(wait)
+		time.Sleep(m.MinWait)
 	}
 	if err == nil {
 		return NormalizeTick(bd), err2
@@ -225,14 +232,12 @@ func (m *Market) GetFive(stockCode string, wait time.Duration) (Five, error) {
 	if stockCode == "" {
 		return Five{}, nil
 	}
-	if wait < m.MinWait {
-		wait = m.MinWait
-	}
-	qq, err := GetMarketFiveQQ(stockCode, wait)
+	wait = m.MinWait
+	qq, err := m.GetFiveQQ(context.Background(), stockCode, wait)
 	if err == nil && qq.ShortName != "" {
 		return NormalizeFive(qq), nil
 	}
-	bd, err2 := GetMarketFiveBaidu(stockCode, wait)
+	bd, err2 := m.GetFiveBaidu(context.Background(), stockCode, wait)
 	if err2 == nil && bd.ShortName != "" {
 		return NormalizeFive(bd), nil
 	}
@@ -243,14 +248,12 @@ func (m *Market) GetFive(stockCode string, wait time.Duration) (Five, error) {
 }
 func (m *Market) ListCurrent(codeList []string, wait time.Duration) ([]CurrentQuote, error) {
 	// 优先新浪，失败或空则腾讯
-	if wait < m.MinWait {
-		wait = m.MinWait
-	}
-	sina, err := ListMarketCurrentSina(codeList, wait)
+	wait = m.MinWait
+	sina, err := m.ListCurrentSina(context.Background(), codeList, wait)
 	if err == nil && len(sina) > 0 {
 		return NormalizeCurrent(sina), nil
 	}
-	qq, err2 := ListMarketCurrentQQ(codeList, wait)
+	qq, err2 := m.ListCurrentQQ(context.Background(), codeList, wait)
 	if err2 == nil && len(qq) > 0 {
 		return NormalizeCurrent(qq), nil
 	}

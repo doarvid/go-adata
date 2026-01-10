@@ -1,35 +1,73 @@
-package sentiment
+package lifting
 
 import (
+	"context"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/doarvid/go-adata/common/header"
-	httpc "github.com/doarvid/go-adata/common/http"
 	"github.com/doarvid/go-adata/common/utils"
 )
 
-// StockLiftingRow 股票解禁数据行
-type StockLiftingRow struct {
-	StockCode string  `json:"stock_code"` // 股票代码，示例：300539
-	ShortName string  `json:"short_name"` // 股票简称，示例：横河精密
-	LiftDate  string  `json:"lift_date"`  // 解禁日期，示例：2023-06-05
-	Volume    int64   `json:"volume"`     // 解禁股数(股)，示例：123400
-	Amount    int64   `json:"amount"`     // 当前解禁市值(元)，根据当前价格计算，示例：1621596
-	Ratio     float64 `json:"ratio"`      // 占总股本比例(%)，示例：0.36
-	Price     float64 `json:"price"`      // 当前价格(元)，示例：13.14
+type Row struct {
+	StockCode string  `json:"stock_code"`
+	ShortName string  `json:"short_name"`
+	LiftDate  string  `json:"lift_date"`
+	Volume    int64   `json:"volume"`
+	Amount    int64   `json:"amount"`
+	Ratio     float64 `json:"ratio"`
+	Price     float64 `json:"price"`
 }
 
-// 获取最近一个月的股票解禁数据
-// 帮助提前规避解禁股票，对于大额解禁个股参考意义巨大。
-func StockLiftingLastMonth(wait time.Duration) ([]StockLiftingRow, error) {
-	out := []StockLiftingRow{}
+type Config struct {
+	Timeout   time.Duration
+	Proxy     string
+	UserAgent string
+	Client    *resty.Client
+}
+type Option func(*Config)
+func WithTimeout(d time.Duration) Option { return func(cfg *Config) { cfg.Timeout = d } }
+func WithProxy(p string) Option          { return func(cfg *Config) { cfg.Proxy = p } }
+func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAgent = ua } }
+func WithClient(c *resty.Client) Option  { return func(cfg *Config) { cfg.Client = c } }
+
+type Client struct {
+	client *resty.Client
+	cfg    Config
+}
+func New(opts ...Option) *Client {
+	cfg := Config{
+		Timeout:   15 * time.Second,
+		UserAgent: "go-adata/lifting",
+	}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var c *resty.Client
+	if cfg.Client != nil {
+		c = cfg.Client
+	} else {
+		c = resty.New()
+		c.SetTimeout(cfg.Timeout)
+		if cfg.UserAgent != "" {
+			c.SetHeader("User-Agent", cfg.UserAgent)
+		}
+		if cfg.Proxy != "" {
+			c.SetProxy(cfg.Proxy)
+		}
+	}
+	return &Client{client: c, cfg: cfg}
+}
+
+func (sl *Client) LastMonth(ctx context.Context, wait time.Duration) ([]Row, error) {
+	out := []Row{}
 	for i := 1; i < 10; i++ {
-		rows, err := stockLiftingLastMonthByPage(i, wait)
+		rows, err := sl.lastMonthByPage(ctx, i, wait)
 		if err != nil {
-			return []StockLiftingRow{}, err
+			return []Row{}, err
 		}
 		out = append(out, rows...)
 		if len(rows) != 50 {
@@ -39,8 +77,7 @@ func StockLiftingLastMonth(wait time.Duration) ([]StockLiftingRow, error) {
 	return out, nil
 }
 
-func stockLiftingLastMonthByPage(pageNum int, wait time.Duration) ([]StockLiftingRow, error) {
-	client := httpc.NewClient()
+func (sl *Client) lastMonthByPage(ctx context.Context, pageNum int, wait time.Duration) ([]Row, error) {
 	url := "http://data.10jqka.com.cn/market/xsjj/field/enddate/order/desc/ajax/1/free/1/"
 	if pageNum > 1 {
 		url = url + "page/" + strconv.Itoa(pageNum) + "/free/1/"
@@ -51,29 +88,28 @@ func stockLiftingLastMonthByPage(pageNum int, wait time.Duration) ([]StockLiftin
 	headers := header.DefaultHeaders()
 	headers["Host"] = "data.10jqka.com.cn"
 	headers["Cookie"] = utils.ThsCookie()
-	resp, err := client.R().SetHeaders(headers).Get(url)
+	resp, err := sl.client.R().SetContext(ctx).SetHeaders(headers).Get(url)
 	if err != nil {
-		return []StockLiftingRow{}, nil
+		return []Row{}, nil
 	}
-	// 将 GB2312 编码的响应体手动解码为 UTF-8
 	gbkBytes := resp.Body()
 	utf8Bytes, err := utils.GBKToUTF8(gbkBytes)
 	if err != nil {
-		return []StockLiftingRow{}, err
+		return []Row{}, err
 	}
 	text := string(utf8Bytes)
 	if !(strings.Contains(text, "解禁日期") || strings.Contains(text, "解禁股")) {
-		return []StockLiftingRow{}, nil
+		return []Row{}, nil
 	}
 	rows := parseTableRows(text)
-	out := make([]StockLiftingRow, 0, len(rows))
+	out := make([]Row, 0, len(rows))
 	for _, r := range rows {
 		if len(r) < 8 {
 			continue
 		}
 		vol := toUnitInt(r[3])
 		amt := toUnitInt(r[5])
-		out = append(out, StockLiftingRow{
+		out = append(out, Row{
 			StockCode: r[0],
 			ShortName: r[1],
 			LiftDate:  r[2],
@@ -126,4 +162,13 @@ func toUnitInt(s string) int64 {
 	}
 	v, _ := strconv.ParseFloat(s, 64)
 	return int64(v)
+}
+
+func parseF(s string) float64 {
+	s = strings.TrimSpace(strings.ReplaceAll(s, "%", ""))
+	if s == "" || s == "--" {
+		return 0
+	}
+	v, _ := strconv.ParseFloat(s, 64)
+	return v
 }

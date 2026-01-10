@@ -1,6 +1,7 @@
 package indexmarket
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -8,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	httpc "github.com/doarvid/go-adata/common/http"
 	"github.com/doarvid/go-adata/stock/info/stockindex"
 )
 
@@ -38,11 +38,10 @@ func yearsFrom(startDate string) []string {
 	return out
 }
 
-func GetIndexDailyThs(indexCode, startDate string, kType int, wait time.Duration) ([]IndexDailyBar, error) {
+func (im *IndexMarket) GetDailyThs(ctx context.Context, indexCode, startDate string, kType int, wait time.Duration) ([]IndexDailyBar, error) {
 	if indexCode == "" {
 		return []IndexDailyBar{}, nil
 	}
-	client := httpc.NewClient()
 	concept := mapIndexToTHS(indexCode)
 	yrs := yearsFrom(startDate)
 	out := make([]IndexDailyBar, 0, 1024)
@@ -51,7 +50,7 @@ func GetIndexDailyThs(indexCode, startDate string, kType int, wait time.Duration
 		if wait > 0 {
 			time.Sleep(wait)
 		}
-		resp, err := client.R().Get(url)
+		resp, err := im.client.R().SetContext(ctx).Get(url)
 		if err != nil {
 			continue
 		}
@@ -100,17 +99,16 @@ func GetIndexDailyThs(indexCode, startDate string, kType int, wait time.Duration
 	return out, nil
 }
 
-func GetIndexMinuteThs(indexCode string, wait time.Duration) ([]IndexMinuteBar, error) {
+func (im *IndexMarket) GetMinuteThs(ctx context.Context, indexCode string, wait time.Duration) ([]IndexMinuteBar, error) {
 	if indexCode == "" {
 		return []IndexMinuteBar{}, nil
 	}
-	client := httpc.NewClient()
 	concept := mapIndexToTHS(indexCode)
 	url := fmt.Sprintf("http://d.10jqka.com.cn/v4/time/zs_%s/last.js", concept)
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp, err := client.R().Get(url)
+	resp, err := im.client.R().SetContext(ctx).Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -159,17 +157,16 @@ func GetIndexMinuteThs(indexCode string, wait time.Duration) ([]IndexMinuteBar, 
 	return out, nil
 }
 
-func GetIndexCurrentThs(indexCode string, wait time.Duration) (IndexCurrent, error) {
+func (im *IndexMarket) GetCurrentThs(ctx context.Context, indexCode string, wait time.Duration) (IndexCurrent, error) {
 	if indexCode == "" {
 		return IndexCurrent{}, nil
 	}
-	client := httpc.NewClient()
 	concept := mapIndexToTHS(indexCode)
 	url := fmt.Sprintf("http://d.10jqka.com.cn/v4/line/zs_%s/01/today.js", concept)
 	if wait > 0 {
 		time.Sleep(wait)
 	}
-	resp, err := client.R().Get(url)
+	resp, err := im.client.R().SetContext(ctx).Get(url)
 	if err != nil {
 		return IndexCurrent{}, err
 	}

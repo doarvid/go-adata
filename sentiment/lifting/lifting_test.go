@@ -1,9 +1,13 @@
-package sentiment
+package lifting
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestStockLiftingLastMonth(t *testing.T) {
-	rows, err := StockLiftingLastMonth(0)
+	sl := New()
+	rows, err := sl.LastMonth(context.Background(), 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -15,3 +19,4 @@ func TestStockLiftingLastMonth(t *testing.T) {
 	}
 	t.Logf("total %d rows", len(rows))
 }
+
