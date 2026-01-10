@@ -39,8 +39,8 @@ func TestTradeCalendarStructureAndRange(t *testing.T) {
 	}
 }
 
-func TestAvailTradeDayN(t *testing.T) {
-	days, err := AvailTradeDayN(365)
+func TestTradeDayN(t *testing.T) {
+	days, err := TradeDayN(365)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
