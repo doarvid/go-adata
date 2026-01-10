@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"slices"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -54,15 +56,20 @@ func TradeDateNow() string {
 }
 func TradeDayN(days int) ([]Day, error) {
 	years := CalendarYears()
-	tradeDates, err := TradeCalendar(years[len(years)-1])
-	if err != nil {
-		return nil, err
+	var tradeDates []Day
+	for i := 0; i < len(years); i++ {
+		tdays, err := TradeCalendar(years[len(years)-1-i])
+		if err != nil {
+			return nil, err
+		}
+		tradeDates = append(tradeDates, tdays...)
+		if len(tradeDates) >= days+365 {
+			break
+		}
 	}
-	tradeDates2, err := TradeCalendar(years[len(years)-2])
-	if err != nil {
-		return nil, err
-	}
-	tradeDates = append(tradeDates, tradeDates2...)
+	slices.SortFunc(tradeDates, func(a, b Day) int {
+		return strings.Compare(a.TradeDate, b.TradeDate)
+	})
 	tradeDate := TradeDate(time.Now())
 	var ret []Day
 	for i := len(tradeDates) - 1; i > 0; i-- {
@@ -73,6 +80,9 @@ func TradeDayN(days int) ([]Day, error) {
 			break
 		}
 	}
+	slices.SortFunc(ret, func(a, b Day) int {
+		return strings.Compare(a.TradeDate, b.TradeDate)
+	})
 	return ret, nil
 }
 
