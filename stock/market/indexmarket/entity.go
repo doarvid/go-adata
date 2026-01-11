@@ -14,6 +14,7 @@ type IndexMarketConfig struct {
 	Client    *resty.Client
 	Wait      time.Duration
 	Retries   int
+	Debug     bool
 }
 
 type IndexMarketOption func(*IndexMarketConfig)
@@ -43,6 +44,9 @@ func WithWait(d time.Duration) IndexMarketOption {
 func WithRetries(n int) IndexMarketOption {
 	return func(cfg *IndexMarketConfig) { cfg.Retries = n }
 }
+func WithDebug(enable bool) IndexMarketOption {
+	return func(cfg *IndexMarketConfig) { cfg.Debug = enable }
+}
 
 type IndexMarket struct {
 	client *resty.Client
@@ -56,6 +60,7 @@ func NewIndexMarket(opts ...IndexMarketOption) *IndexMarket {
 		Headers:   map[string]string{},
 		Wait:      50 * time.Millisecond,
 		Retries:   2,
+		Debug:     false,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -72,6 +77,9 @@ func NewIndexMarket(opts ...IndexMarketOption) *IndexMarket {
 		if cfg.Proxy != "" {
 			c.SetProxy(cfg.Proxy)
 		}
+	}
+	if cfg.Debug {
+		c.SetDebug(true)
 	}
 	return &IndexMarket{client: c, cfg: cfg}
 }

@@ -40,6 +40,7 @@ type Config struct {
 	Client    *resty.Client
 	Wait      time.Duration
 	Retries   int
+	Debug     bool
 }
 type Option func(*Config)
 
@@ -49,6 +50,7 @@ func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAg
 func WithClient(c *resty.Client) Option  { return func(cfg *Config) { cfg.Client = c } }
 func WithWait(d time.Duration) Option    { return func(cfg *Config) { cfg.Wait = d } }
 func WithRetries(n int) Option           { return func(cfg *Config) { cfg.Retries = n } }
+func WithDebug(enable bool) Option       { return func(cfg *Config) { cfg.Debug = enable } }
 
 type Client struct {
 	client *resty.Client
@@ -61,6 +63,7 @@ func New(opts ...Option) *Client {
 		UserAgent: "go-adata/northflow",
 		Wait:      50 * time.Millisecond,
 		Retries:   2,
+		Debug:     false,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -77,6 +80,9 @@ func New(opts ...Option) *Client {
 		if cfg.Proxy != "" {
 			c.SetProxy(cfg.Proxy)
 		}
+	}
+	if cfg.Debug {
+		c.SetDebug(true)
 	}
 	return &Client{client: c, cfg: cfg}
 }

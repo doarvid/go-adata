@@ -33,6 +33,7 @@ type Market struct {
 	Retries int
 
 	proxy  string
+	debug  bool
 	client *resty.Client
 }
 
@@ -125,6 +126,11 @@ func WithProxy(proxy string) MarketOpt {
 		m.proxy = proxy
 	}
 }
+func WithDebug(enable bool) MarketOpt {
+	return func(m *Market) {
+		m.debug = enable
+	}
+}
 
 func NewMarket(opts ...MarketOpt) *Market {
 	m := &Market{MinWait: 50 * time.Millisecond, Retries: 2}
@@ -136,6 +142,9 @@ func NewMarket(opts ...MarketOpt) *Market {
 	c.SetHeader("User-Agent", "go-adata/stockmarket")
 	if m.proxy != "" {
 		c.SetProxy(m.proxy)
+	}
+	if m.debug {
+		c.SetDebug(true)
 	}
 	m.client = c
 	return m

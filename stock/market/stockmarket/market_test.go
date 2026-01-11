@@ -121,7 +121,7 @@ func TestGetMarketCurrentQQ(t *testing.T) {
 
 func TestGetMarketFive(t *testing.T) {
 	stockCode := "002926"
-	five, err := NewMarket().GetFiveBaidu(context.Background(), stockCode)
+	five, err := NewMarket(WithDebug(true)).GetFiveBaidu(context.Background(), stockCode)
 	if err != nil {
 		t.Skipf("GetMarketFiveBaidu error: %v, skipping", err)
 		return
