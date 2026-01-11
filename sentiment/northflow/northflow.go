@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	browser "github.com/EDDYCJY/fake-useragent"
 	"github.com/doarvid/go-adata/stock/info/tradecalendar"
 	"github.com/go-resty/resty/v2"
 )
@@ -74,9 +75,11 @@ func New(opts ...Option) *Client {
 	} else {
 		c = resty.New()
 		c.SetTimeout(cfg.Timeout)
-		if cfg.UserAgent != "" {
-			c.SetHeader("User-Agent", cfg.UserAgent)
+		ua := cfg.UserAgent
+		if ua == "" {
+			ua = browser.Random()
 		}
+		c.SetHeader("User-Agent", ua)
 		if cfg.Proxy != "" {
 			c.SetProxy(cfg.Proxy)
 		}

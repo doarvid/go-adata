@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	browser "github.com/EDDYCJY/fake-useragent"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -139,7 +140,7 @@ func NewMarket(opts ...MarketOpt) *Market {
 	}
 	c := resty.New()
 	c.SetTimeout(15 * time.Second)
-	c.SetHeader("User-Agent", "go-adata/stockmarket")
+	c.SetHeader("User-Agent", browser.Random())
 	if m.proxy != "" {
 		c.SetProxy(m.proxy)
 	}

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	browser "github.com/EDDYCJY/fake-useragent"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -29,6 +30,7 @@ type Config struct {
 	Debug     bool
 }
 type Option func(*Config)
+
 func WithTimeout(d time.Duration) Option { return func(cfg *Config) { cfg.Timeout = d } }
 func WithProxy(p string) Option          { return func(cfg *Config) { cfg.Proxy = p } }
 func WithUserAgent(ua string) Option     { return func(cfg *Config) { cfg.UserAgent = ua } }
@@ -41,6 +43,7 @@ type Client struct {
 	client *resty.Client
 	cfg    Config
 }
+
 func New(opts ...Option) *Client {
 	cfg := Config{
 		Timeout:   15 * time.Second,
@@ -58,9 +61,11 @@ func New(opts ...Option) *Client {
 	} else {
 		c = resty.New()
 		c.SetTimeout(cfg.Timeout)
-		if cfg.UserAgent != "" {
-			c.SetHeader("User-Agent", cfg.UserAgent)
+		ua := cfg.UserAgent
+		if ua == "" {
+			ua = browser.Random()
 		}
+		c.SetHeader("User-Agent", ua)
 		if cfg.Proxy != "" {
 			c.SetProxy(cfg.Proxy)
 		}

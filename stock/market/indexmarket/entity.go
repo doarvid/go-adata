@@ -3,6 +3,7 @@ package indexmarket
 import (
 	"time"
 
+	browser "github.com/EDDYCJY/fake-useragent"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -71,9 +72,11 @@ func NewIndexMarket(opts ...IndexMarketOption) *IndexMarket {
 	} else {
 		c = resty.New()
 		c.SetTimeout(cfg.Timeout)
-		if cfg.UserAgent != "" {
-			c.SetHeader("User-Agent", cfg.UserAgent)
+		ua := cfg.UserAgent
+		if ua == "" {
+			ua = browser.Random()
 		}
+		c.SetHeader("User-Agent", ua)
 		if cfg.Proxy != "" {
 			c.SetProxy(cfg.Proxy)
 		}

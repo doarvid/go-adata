@@ -3,6 +3,7 @@ package indexmarket
 import (
 	"time"
 
+	browser "github.com/EDDYCJY/fake-useragent"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -33,13 +34,14 @@ func getHTTPClient() *resty.Client {
 	}
 	c := resty.New()
 	c.SetTimeout(pkgCfg.Timeout)
-	if pkgCfg.UserAgent != "" {
-		c.SetHeader("User-Agent", pkgCfg.UserAgent)
+	ua := pkgCfg.UserAgent
+	if ua == "" {
+		ua = browser.Random()
 	}
+	c.SetHeader("User-Agent", ua)
 	if pkgCfg.Proxy != "" {
 		c.SetProxy(pkgCfg.Proxy)
 	}
 	pkgClient = c
 	return pkgClient
 }
-
