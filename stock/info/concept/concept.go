@@ -12,6 +12,7 @@ import (
 	"time"
 
 	browser "github.com/EDDYCJY/fake-useragent"
+	"github.com/doarvid/go-adata/common/utils"
 	"github.com/go-resty/resty/v2"
 
 	"github.com/doarvid/go-adata/common/codeutils"
@@ -106,7 +107,7 @@ func NewConcept(opts ...Option) *Concept {
 		}
 		c.SetHeader("User-Agent", ua)
 		if cfg.Proxy != "" {
-			c.SetProxy(cfg.Proxy)
+			utils.ApplyProxyResty(c, cfg.Proxy)
 		}
 	}
 	if cfg.Debug {

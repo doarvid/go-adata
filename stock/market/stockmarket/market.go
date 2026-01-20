@@ -5,6 +5,7 @@ import (
 	"time"
 
 	browser "github.com/EDDYCJY/fake-useragent"
+	"github.com/doarvid/go-adata/common/utils"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -142,7 +143,7 @@ func NewMarket(opts ...MarketOpt) *Market {
 	c.SetTimeout(15 * time.Second)
 	c.SetHeader("User-Agent", browser.Random())
 	if m.proxy != "" {
-		c.SetProxy(m.proxy)
+		utils.ApplyProxyResty(c, m.proxy)
 	}
 	if m.debug {
 		c.SetDebug(true)

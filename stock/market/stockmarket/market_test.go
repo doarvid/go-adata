@@ -27,7 +27,7 @@ func TestGetMarketDaily(t *testing.T) {
 func TestGetMarketDailyBaidu(t *testing.T) {
 	stockCode := "002926"
 	startDate := "2025-11-13"
-	dailyBars, err := NewMarket().GetDailyBaidu(context.Background(), stockCode, startDate, KTypeDay)
+	dailyBars, err := NewMarket(WithDebug(true), WithProxy("http://192.168.31.100:20172")).GetDailyBaidu(context.Background(), stockCode, startDate, KTypeDay)
 	if err != nil {
 		t.Skipf("GetMarketDailyBaidu error: %v, skipping", err)
 		return

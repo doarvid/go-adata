@@ -70,7 +70,7 @@ func New(opts ...Option) *Client {
 		}
 		c.SetHeader("User-Agent", ua)
 		if cfg.Proxy != "" {
-			c.SetProxy(cfg.Proxy)
+			utils.ApplyProxyResty(c, cfg.Proxy)
 		}
 	}
 	if cfg.Debug {

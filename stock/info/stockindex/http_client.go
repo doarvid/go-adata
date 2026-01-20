@@ -4,6 +4,7 @@ import (
 	"time"
 
 	browser "github.com/EDDYCJY/fake-useragent"
+	"github.com/doarvid/go-adata/common/utils"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -40,7 +41,7 @@ func getHTTPClient() *resty.Client {
 	}
 	c.SetHeader("User-Agent", ua)
 	if pkgCfg.Proxy != "" {
-		c.SetProxy(pkgCfg.Proxy)
+		utils.ApplyProxyResty(c, pkgCfg.Proxy)
 	}
 	pkgClient = c
 	return pkgClient
