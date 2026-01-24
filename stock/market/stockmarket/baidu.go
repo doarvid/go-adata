@@ -21,6 +21,10 @@ func (m *Market) GetDailyBaidu(ctx context.Context, stockCode string, startDate 
 			} `json:"newMarketData"`
 		} `json:"Result"`
 	}
+	var res2 struct {
+		ResultCode string `json:"ResultCode"`
+		Result     []any  `json:"Result"`
+	}
 	// retry
 	for i := 0; i < 3; i++ {
 		if m.MinWait > 0 {
@@ -31,7 +35,12 @@ func (m *Market) GetDailyBaidu(ctx context.Context, stockCode string, startDate 
 			return nil, err
 		}
 		if err := json.Unmarshal(resp.Body(), &res); err != nil {
-			return nil, err
+			if err := json.Unmarshal(resp.Body(), &res2); err != nil {
+				return nil, err
+			}
+			fmt.Printf("stockcode:%s %v\n", stockCode, res2)
+			res.ResultCode = res2.ResultCode
+			break
 		}
 		if res.ResultCode == "0" {
 			break

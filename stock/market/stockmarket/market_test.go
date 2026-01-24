@@ -8,7 +8,7 @@ import (
 )
 
 func TestGetMarketDaily(t *testing.T) {
-	stockCode := "002926"
+	stockCode := "600842"
 	startDate := "2025-11-13"
 	m := NewMarket()
 	dailyBars, err := m.GetDaily(stockCode, startDate, tradecalendar.TradeDateNow(), KTypeDay, AdjustTypePre)
@@ -25,7 +25,7 @@ func TestGetMarketDaily(t *testing.T) {
 }
 
 func TestGetMarketDailyBaidu(t *testing.T) {
-	stockCode := "002926"
+	stockCode := "600842"
 	startDate := "2025-11-13"
 	dailyBars, err := NewMarket(WithDebug(true), WithProxy("http://192.168.31.100:20172")).GetDailyBaidu(context.Background(), stockCode, startDate, KTypeDay)
 	if err != nil {
@@ -43,7 +43,7 @@ func TestGetMarketDailyBaidu(t *testing.T) {
 }
 
 func TestGetMarketDailyEast(t *testing.T) {
-	stockCode := "002926"
+	stockCode := "600842"
 	startDate := "2025-11-13"
 	endDate := "2025-11-18"
 	dailyBars, err := NewMarket().GetDailyEast(context.Background(), stockCode, startDate, endDate, KTypeDay, 1)

@@ -160,8 +160,11 @@ func (m *Market) GetDaily(stockCode, startDate, endDate string, kType KType, adj
 	var err error
 	for i := 0; i <= m.Retries; i++ {
 		east, err = m.GetDailyEast(context.Background(), stockCode, startDate, endDate, kType, adjustType)
-		if err == nil && len(east) > 0 {
-			return NormalizeDaily(east), nil
+		if err == nil {
+			if len(east) > 0 {
+				return NormalizeDaily(east), nil
+			}
+			break
 		}
 		time.Sleep(m.MinWait)
 	}
@@ -169,15 +172,15 @@ func (m *Market) GetDaily(stockCode, startDate, endDate string, kType KType, adj
 	var err2 error
 	for i := 0; i <= m.Retries; i++ {
 		bd, err2 = m.GetDailyBaidu(context.Background(), stockCode, startDate, kType)
-		if err2 == nil && len(bd) > 0 {
-			return NormalizeDaily(bd), nil
+		if err2 == nil {
+			if len(bd) > 0 {
+				return NormalizeDaily(bd), nil
+			}
+			break
 		}
 		time.Sleep(m.MinWait)
 	}
-	if len(bd) > 0 {
-		return NormalizeDaily(bd), err
-	}
-	return NormalizeDaily(east), err
+	return nil, err2
 }
 
 func (m *Market) GetMinute(stockCode string) ([]MinuteBar, error) {
@@ -188,8 +191,11 @@ func (m *Market) GetMinute(stockCode string) ([]MinuteBar, error) {
 	var err error
 	for i := 0; i <= m.Retries; i++ {
 		east, err = m.GetMinuteEast(context.Background(), stockCode)
-		if err == nil && len(east) > 0 {
-			return NormalizeMinute(east), nil
+		if err == nil {
+			if len(east) > 0 {
+				return NormalizeMinute(east), nil
+			}
+			break
 		}
 		time.Sleep(m.MinWait)
 	}
@@ -197,15 +203,15 @@ func (m *Market) GetMinute(stockCode string) ([]MinuteBar, error) {
 	var err2 error
 	for i := 0; i <= m.Retries; i++ {
 		bd, err2 = m.GetMinuteBaidu(context.Background(), stockCode)
-		if err2 == nil && len(bd) > 0 {
-			return NormalizeMinute(bd), nil
+		if err2 == nil {
+			if len(bd) > 0 {
+				return NormalizeMinute(bd), nil
+			}
+			break
 		}
 		time.Sleep(m.MinWait)
 	}
-	if len(bd) > 0 {
-		return NormalizeMinute(bd), err
-	}
-	return NormalizeMinute(east), err
+	return nil, err2
 }
 
 func (m *Market) GetBar(stockCode string) ([]TickBar, error) {
