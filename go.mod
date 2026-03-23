@@ -4,7 +4,6 @@ go 1.24.4
 
 require (
 	github.com/EDDYCJY/fake-useragent v0.2.0
-	github.com/doarvid/goutils v0.0.0-20251129053417-6e7cb2d65e68
 	github.com/dop251/goja v0.0.0-20251121114222-56b1242a5f86
 	github.com/go-resty/resty/v2 v2.17.0
 	golang.org/x/net v0.47.0

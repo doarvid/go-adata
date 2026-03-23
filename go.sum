@@ -8,8 +8,6 @@ github.com/andybalholm/cascadia v1.3.3 h1:AG2YHrzJIm4BZ19iwJ/DAua6Btl3IwJX+VI4kk
 github.com/andybalholm/cascadia v1.3.3/go.mod h1:xNd9bqTn98Ln4DwST8/nG+H0yuB8Hmgu1YHNnWw0GeA=
 github.com/dlclark/regexp2 v1.11.4 h1:rPYF9/LECdNymJufQKmri9gV604RvvABwgOA8un7yAo=
 github.com/dlclark/regexp2 v1.11.4/go.mod h1:DHkYz0B9wPfa6wondMfaivmHpzrQ3v9q8cnmRbL6yW8=
-github.com/doarvid/goutils v0.0.0-20251129053417-6e7cb2d65e68 h1:ZYxa9LCI3FGhiUCLl8o2nonK1xSjim6m8gaZCPKyJDM=
-github.com/doarvid/goutils v0.0.0-20251129053417-6e7cb2d65e68/go.mod h1:RAPlLqbsBNPngt8SoQp5FEujCGWd8YXi0uB3k0F7smg=
 github.com/dop251/goja v0.0.0-20251121114222-56b1242a5f86 h1:iY/kk+Fw7k49PRM4cS2wz9CVxO0jB61+h//XN9bbAS4=
 github.com/dop251/goja v0.0.0-20251121114222-56b1242a5f86/go.mod h1:MxLav0peU43GgvwVgNbLAj1s/bSGboKkhuULvq/7hx4=
 github.com/go-resty/resty/v2 v2.17.0 h1:pW9DeXcaL4Rrym4EZ8v7L19zZiIlWPg5YXAcVmt+gN0=
