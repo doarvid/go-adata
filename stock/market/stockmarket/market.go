@@ -34,9 +34,10 @@ type Market struct {
 	MinWait time.Duration
 	Retries int
 
-	proxy  string
-	debug  bool
-	client *resty.Client
+	proxy        string
+	debug        bool
+	remoteChrome string
+	client       *resty.Client
 }
 
 type DailyBar struct {

@@ -10,13 +10,24 @@ import (
 )
 
 type CurrentQuote struct {
-	StockCode string  `json:"stock_code"`
-	ShortName string  `json:"short_name"`
-	Price     float64 `json:"price"`
-	Change    float64 `json:"change"`
-	ChangePct float64 `json:"change_pct"`
-	Volume    float64 `json:"volume"`
-	Amount    float64 `json:"amount"`
+	StockCode   string   `json:"stock_code"`    // 股票代码
+	ShortName   string   `json:"short_name"`    // 股票简称
+	Price       float64  `json:"price"`         // 最新价/当前价
+	Change      float64  `json:"change"`        // 涨跌额
+	ChangePct   float64  `json:"change_pct"`    // 涨跌幅 (%)
+	Volume      float64  `json:"volume"`        // 成交量 (股)
+	Amount      float64  `json:"amount"`        // 成交额 (元)
+	TotalCap    *float64 `json:"total_cap"`     // 总市值 (元)
+	FloatCap    *float64 `json:"float_cap"`     // 流通市值 (元)
+	TotalShares *float64 `json:"total_shares"`  // 总股本
+	FloatShares *float64 `json:"float_shares"`  // 流通股本
+	Change5d    *float64 `json:"change_5d"`     // 5 日涨跌幅 (%)
+	Change10d   *float64 `json:"change_10d"`    // 10 日涨跌幅 (%)
+	Change20d   *float64 `json:"change_20d"`    // 20 日涨跌幅 (%)
+	Change60d   *float64 `json:"change_60d"`    // 60 日涨跌幅 (%)
+	Change120d  *float64 `json:"change_120d"`   // 120 日涨跌幅 (%)
+	Change250d  *float64 `json:"change_250d"`   // 250 日涨跌幅 (%)
+	ChangeYtd   *float64 `json:"change_ytd"`    // 年初至今涨跌幅 (%)
 }
 
 func (m *Market) ListCurrentSina(ctx context.Context, codeList []string) ([]CurrentQuote, error) {

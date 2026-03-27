@@ -134,3 +134,22 @@ func TestGetMarketFive(t *testing.T) {
 	}
 	t.Logf("five %+v", five)
 }
+
+func TestGetAll(t *testing.T) {
+	var all []*CurrentQuote
+	err := NewMarket().AllFutu(context.Background(), func(stock *CurrentQuote) {
+		t.Logf("quote %d %+v", len(all), stock)
+		all = append(all, stock)
+	})
+	if err != nil {
+		t.Skipf("AllFutu error: %v, skipping", err)
+		return
+	}
+	if len(all) < 1000 {
+		t.Skipf("only %d quotes, expected at least 1000", len(all))
+		return
+	}
+	t.Logf("total %d quotes", len(all))
+	t.Logf("first quote: %+v", all[0])
+	t.Logf("last quote: %+v", all[len(all)-1])
+}
