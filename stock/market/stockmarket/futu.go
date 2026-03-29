@@ -37,6 +37,7 @@ func (m *Market) AllFutu(ctx context.Context, callback func(stock []*CurrentQuot
 	nextPageSelector := "#view-page > div.quote-page.router-page > div > section > div > div.stock-list > div.list-table > div > span.item.next > i"
 
 	var totalProcessed int
+	var pageSize int
 
 	for page := 1; ; page++ {
 		var htmlContent string
@@ -84,7 +85,13 @@ func (m *Market) AllFutu(ctx context.Context, callback func(stock []*CurrentQuot
 			log.Printf("Error parsing page %d HTML: %v", page, err)
 			continue
 		}
-
+		if pageSize == 1 {
+			pageSize = len(quotes)
+		}
+		if len(quotes) != pageSize {
+			log.Printf("Page size changed from %d to %d on page %d, total processed: %d", pageSize, len(quotes), page, totalProcessed)
+			break
+		}
 		if len(quotes) == 0 {
 			log.Printf("No data found on page %d, total processed: %d", page, totalProcessed)
 			break
