@@ -2,6 +2,7 @@ package stockmarket
 
 import (
 	"context"
+	"log"
 	"strings"
 	"time"
 
@@ -19,7 +20,7 @@ func WithRemoteChrome(url string) MarketOpt {
 // AllFutu 爬取富途牛牛 A 股行情数据，支持翻页
 // 使用 Chrome 远程调试方式，需要预先启动带调试端口的 Chrome
 // 启动命令示例：chrome --remote-debugging-port=9222
-func (m *Market) AllFutu(ctx context.Context, callback func(stock *CurrentQuote)) error {
+func (m *Market) AllFutu(ctx context.Context, callback func(stock []*CurrentQuote)) error {
 	debugURL := m.remoteChrome
 	if debugURL == "" {
 		debugURL = "http://localhost:9222"
@@ -29,9 +30,6 @@ func (m *Market) AllFutu(ctx context.Context, callback func(stock *CurrentQuote)
 	defer cancel()
 
 	ctx, cancel = chromedp.NewContext(allocCtx)
-	defer cancel()
-
-	ctx, cancel = context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
 	url := "https://www.futunn.com/quote/cn/stock-list/all-cn-stocks/top-market-cap"
@@ -51,52 +49,50 @@ func (m *Market) AllFutu(ctx context.Context, callback func(stock *CurrentQuote)
 				chromedp.OuterHTML(contentSelector, &htmlContent, chromedp.NodeVisible),
 			)
 			if err != nil {
-				if totalProcessed == 0 {
-					return err
-				}
-				break
+				log.Printf("Error navigating to page %d, total processed: %d: %v", page, totalProcessed, err)
+				continue
 			}
 		} else {
+			time.Sleep(time.Second * 30)
 			var hasNext bool
 			err := chromedp.Run(ctx,
 				chromedp.WaitVisible(nextPageSelector, chromedp.ByQuery, chromedp.AtLeast(0)),
 				chromedp.Evaluate(`document.querySelector('`+nextPageSelector+`') !== null && document.querySelector('`+nextPageSelector+`').offsetParent !== null`, &hasNext),
 			)
-			if err != nil || !hasNext {
+			if err != nil {
+				log.Printf("Error checking next page %d, total processed: %d: %v", page, totalProcessed, err)
+				continue
+			}
+			if !hasNext {
 				break
 			}
 
 			err = chromedp.Run(ctx,
 				chromedp.Click(nextPageSelector, chromedp.ByQuery),
-				chromedp.Sleep(2*time.Second),
+				chromedp.Sleep(15*time.Second),
 				chromedp.WaitVisible(contentSelector, chromedp.ByQuery),
 				chromedp.OuterHTML(contentSelector, &htmlContent, chromedp.NodeVisible),
 			)
 			if err != nil {
-				break
+				log.Printf("Error clicking next page %d, total processed: %d: %v", page, totalProcessed, err)
+				continue
 			}
 		}
 
 		quotes, err := parseFutuHTML(htmlContent)
 		if err != nil {
+			log.Printf("Error parsing page %d HTML: %v", page, err)
 			continue
 		}
 
 		if len(quotes) == 0 {
+			log.Printf("No data found on page %d, total processed: %d", page, totalProcessed)
 			break
 		}
 
-		for _, quote := range quotes {
-			callback(quote)
-			totalProcessed++
-		}
+		totalProcessed += len(quotes)
 
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-		}
-		time.Sleep(time.Second * 30)
+		callback(quotes)
 	}
 
 	return nil

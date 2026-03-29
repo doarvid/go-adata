@@ -21,15 +21,17 @@ func TestAllFutu(t *testing.T) {
 	count := 0
 	startTime := time.Now()
 
-	err := m.AllFutu(context.Background(), func(quote *CurrentQuote) {
-		count++
-		fmt.Printf("[%d] %s - %s: %.2f (%.2f%%)\n",
-			count,
-			quote.StockCode,
-			quote.ShortName,
-			quote.Price,
-			quote.ChangePct,
-		)
+	err := m.AllFutu(context.Background(), func(quote []*CurrentQuote) {
+		count += len(quote)
+		for _, q := range quote {
+			fmt.Printf("[%d] %s - %s: %.2f (%.2f%%)\n",
+				count,
+				q.StockCode,
+				q.ShortName,
+				q.Price,
+				q.ChangePct,
+			)
+		}
 	})
 
 	elapsed := time.Since(startTime)
@@ -48,10 +50,10 @@ func TestExampleAllFutu(t *testing.T) {
 	)
 
 	// 爬取数据
-	err := m.AllFutu(context.Background(), func(quote *CurrentQuote) {
+	err := m.AllFutu(context.Background(), func(quote []*CurrentQuote) {
 		// 回调处理每条数据
 		data, _ := json.Marshal(quote)
-		fmt.Printf("%s %s: %.2f\n", string(data), quote.ShortName, quote.Price)
+		fmt.Printf("%d quotes: %s\n", len(quote), string(data))
 	})
 
 	if err != nil {

@@ -137,9 +137,9 @@ func TestGetMarketFive(t *testing.T) {
 
 func TestGetAll(t *testing.T) {
 	var all []*CurrentQuote
-	err := NewMarket().AllFutu(context.Background(), func(stock *CurrentQuote) {
+	err := NewMarket().AllFutu(context.Background(), func(stock []*CurrentQuote) {
 		t.Logf("quote %d %+v", len(all), stock)
-		all = append(all, stock)
+		all = append(all, stock...)
 	})
 	if err != nil {
 		t.Skipf("AllFutu error: %v, skipping", err)

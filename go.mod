@@ -4,6 +4,8 @@ go 1.26
 
 require (
 	github.com/EDDYCJY/fake-useragent v0.2.0
+	github.com/PuerkitoBio/goquery v1.11.0
+	github.com/chromedp/chromedp v0.15.1
 	github.com/dop251/goja v0.0.0-20251121114222-56b1242a5f86
 	github.com/go-resty/resty/v2 v2.17.0
 	golang.org/x/net v0.47.0
@@ -11,10 +13,8 @@ require (
 )
 
 require (
-	github.com/PuerkitoBio/goquery v1.11.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/chromedp/cdproto v0.0.0-20260321001828-e3e3800016bc // indirect
-	github.com/chromedp/chromedp v0.15.1 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/dlclark/regexp2 v1.11.4 // indirect
 	github.com/go-json-experiment/json v0.0.0-20260214004413-d219187c3433 // indirect
