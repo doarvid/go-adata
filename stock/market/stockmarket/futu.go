@@ -88,10 +88,6 @@ func (m *Market) AllFutu(ctx context.Context, callback func(stock []*CurrentQuot
 		if pageSize == 1 {
 			pageSize = len(quotes)
 		}
-		if len(quotes) != pageSize {
-			log.Printf("Page size changed from %d to %d on page %d, total processed: %d", pageSize, len(quotes), page, totalProcessed)
-			break
-		}
 		if len(quotes) == 0 {
 			log.Printf("No data found on page %d, total processed: %d", page, totalProcessed)
 			break
@@ -100,6 +96,11 @@ func (m *Market) AllFutu(ctx context.Context, callback func(stock []*CurrentQuot
 		totalProcessed += len(quotes)
 
 		callback(quotes)
+
+		if len(quotes) != pageSize {
+			log.Printf("Page size changed from %d to %d on page %d, total processed: %d", pageSize, len(quotes), page, totalProcessed)
+			break
+		}
 	}
 
 	return nil
